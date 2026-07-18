@@ -53,6 +53,12 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<Params> }
   if (!user || user.status !== "approved") {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
+  if (user.role !== "admin") {
+    return NextResponse.json(
+      { error: "Solo un administrador puede eliminar directamente. Solicita el borrado y un admin lo revisará." },
+      { status: 403 }
+    );
+  }
   const { mod, recordId } = await resolve(ctx);
   if (!mod || !Number.isFinite(recordId)) {
     return NextResponse.json({ error: "No encontrado." }, { status: 404 });

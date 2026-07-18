@@ -204,9 +204,40 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // crud_eliminar
+      // crud_eliminar (solo admin; profesional debe usar solicitar_borrado)
+      if (user.role !== "admin") {
+        return NextResponse.json(
+          { error: "Solo un administrador puede eliminar directamente. Usa la acción 'solicitar_borrado'." },
+          { status: 403 }
+        );
+      }
       await deleteRecord(mod, id);
       return NextResponse.json({ ok: true, mensaje: `Listo, eliminé el registro #${id} de ${mod.label}.` });
+    }
+
+    // ---------- Solicitud de borrado (profesional; admin también puede usarla) ----------
+    if (tipo === "solicitar_borrado") {
+      const moduloSlug = texto(p.modulo, 60);
+      const mod = moduloSlug ? getModule(moduloSlug) : undefined;
+      if (!mod) return NextResponse.json({ error: "Módulo desconocido." }, { status: 400 });
+
+      const resuelto = await resolverRegistroId(mod, p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const id = resuelto.id;
+      const motivo = texto(p.motivo, 500);
+
+      const { getRecord } = await import("@/lib/crud");
+      const record = await getRecord(mod, id);
+      const descripcion = record && record[mod.titleField] != null ? String(record[mod.titleField]) : `#${id}`;
+
+      const { createSolicitud } = await import("@/lib/solicitudes-borrado");
+      await createSolicitud(mod.slug, id, descripcion, user.id, motivo);
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: `Listo, envié la solicitud de borrado de "${descripcion}" (${mod.label}). Un administrador la va a revisar.`,
+        url: "/admin/solicitudes-borrado",
+      });
     }
 
     // ---------- Tickets ----------

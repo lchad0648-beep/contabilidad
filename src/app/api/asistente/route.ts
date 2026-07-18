@@ -85,7 +85,9 @@ function accionesDisponibles(role: string): string {
     "",
     '- crud_crear: {"modulo": string (slug del módulo), "datos": {...campos...}} — crea un registro nuevo en cualquiera de los módulos de abajo.',
     '- crud_actualizar: {"modulo": string, "buscar": string (nombre/número del registro tal como lo dio el usuario) | "id": number, "datos": {...campos a cambiar...}} — actualiza un registro existente (solo incluye los campos que cambian). Prefiere "buscar" sobre "id".',
-    '- crud_eliminar: {"modulo": string, "buscar": string | "id": number} — elimina un registro. Es irreversible: antes de proponer el bloque, confirma en tu texto qué registro exacto se va a borrar.',
+    role === "admin"
+      ? '- crud_eliminar: {"modulo": string, "buscar": string | "id": number} — elimina un registro directamente. Es irreversible: antes de proponer el bloque, confirma en tu texto qué registro exacto se va a borrar.'
+      : '- solicitar_borrado: {"modulo": string, "buscar": string | "id": number, "motivo": string} — IMPORTANTE: los profesionales NO pueden eliminar registros directamente (ni los suyos ni los de otros). Si el usuario pide borrar/eliminar algo, recuérdaselo brevemente y usa esta acción en su lugar: crea una solicitud que un admin va a revisar y aprobar o rechazar.',
     "",
     "Módulos disponibles y sus campos (usa exactamente estos nombres de slug y de campo):",
     camposPorModulo,

@@ -47,12 +47,20 @@ export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
       />
 
       {isAdmin && (
-        <SidebarLink
-          href="/admin/usuarios"
-          icon="🛡️"
-          label="Usuarios (admin)"
-          active={pathname === "/admin/usuarios"}
-        />
+        <>
+          <SidebarLink
+            href="/admin/usuarios"
+            icon="🛡️"
+            label="Usuarios (admin)"
+            active={pathname === "/admin/usuarios"}
+          />
+          <SidebarLink
+            href="/admin/solicitudes-borrado"
+            icon="🗑️"
+            label="Solicitudes de borrado"
+            active={pathname === "/admin/solicitudes-borrado"}
+          />
+        </>
       )}
     </nav>
   );

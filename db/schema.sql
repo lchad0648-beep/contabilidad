@@ -249,3 +249,18 @@ CREATE TABLE IF NOT EXISTS asientos_diario (
   descripcion TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT now()
 );
+
+-- Los profesionales no pueden eliminar registros directamente: deben solicitar
+-- el borrado y un admin lo aprueba o rechaza.
+CREATE TABLE IF NOT EXISTS solicitudes_borrado (
+  id BIGSERIAL PRIMARY KEY,
+  modulo TEXT NOT NULL,
+  registro_id BIGINT NOT NULL,
+  registro_descripcion TEXT,
+  solicitado_por BIGINT NOT NULL REFERENCES users(id),
+  motivo TEXT,
+  estado TEXT NOT NULL DEFAULT 'Pendiente' CHECK (estado IN ('Pendiente', 'Aprobada', 'Rechazada')),
+  revisado_por BIGINT REFERENCES users(id),
+  revisado_at TIMESTAMP,
+  created_at TIMESTAMP NOT NULL DEFAULT now()
+);

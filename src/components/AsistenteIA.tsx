@@ -9,6 +9,7 @@ type AccionTipo =
   | "crud_crear"
   | "crud_actualizar"
   | "crud_eliminar"
+  | "solicitar_borrado"
   | "responder_ticket"
   | "asignar_ticket"
   | "cambiar_estado_ticket"
@@ -85,6 +86,8 @@ function describirAccion(accion: Accion): string {
       return `Actualizar el registro ${refRegistro(p)} de "${p.modulo}":\n${formatDatos(p.datos)}`;
     case "crud_eliminar":
       return `⚠️ Eliminar (irreversible) el registro ${refRegistro(p)} de "${p.modulo}".`;
+    case "solicitar_borrado":
+      return `Enviar a un admin la solicitud de borrado del registro ${refRegistro(p)} de "${p.modulo}"${p.motivo ? `: ${p.motivo}` : ""}.`;
     case "responder_ticket":
       return `Responder en el ticket de ${refTicket(p)}:\n"${p.mensaje}"`;
     case "asignar_ticket":

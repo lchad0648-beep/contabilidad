@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getModule } from "./modules";
-import { createRecord, updateRecord, deleteRecord } from "./crud";
+import { createRecord, updateRecord, deleteRecord, getRecord } from "./crud";
 import { getCurrentUser } from "./auth";
 
 async function requireApprovedUser() {
@@ -45,13 +45,54 @@ export async function updateModuleRecord(modulo: string, id: number, formData: F
 }
 
 export async function deleteModuleRecord(modulo: string, id: number) {
-  await requireApprovedUser();
+  const user = await requireApprovedUser();
+  if (user.role !== "admin") {
+    throw new Error("Solo un administrador puede eliminar directamente. Usa 'Solicitar borrado'.");
+  }
   const mod = getModule(modulo);
   if (!mod) throw new Error("Módulo no encontrado.");
 
   await deleteRecord(mod, id);
   revalidatePath(`/${modulo}`);
   redirect(`/${modulo}`);
+}
+
+export async function solicitarBorradoAction(modulo: string, id: number, formData: FormData) {
+  const user = await requireApprovedUser();
+  if (user.role === "cliente") throw new Error("No autorizado.");
+
+  const mod = getModule(modulo);
+  if (!mod) throw new Error("Módulo no encontrado.");
+
+  const record = await getRecord(mod, id);
+  if (!record) throw new Error("Registro no encontrado.");
+
+  const motivo = String(formData.get("motivo") ?? "").trim() || null;
+  const descripcion = record[mod.titleField] != null ? String(record[mod.titleField]) : `#${id}`;
+
+  const { createSolicitud } = await import("./solicitudes-borrado");
+  await createSolicitud(mod.slug, id, descripcion, user.id, motivo);
+
+  revalidatePath(`/${modulo}`);
+  redirect(`/${modulo}`);
+}
+
+export async function aprobarSolicitudBorradoAction(solicitudId: number) {
+  const user = await requireApprovedUser();
+  if (user.role !== "admin") throw new Error("No autorizado.");
+
+  const { aprobarSolicitud } = await import("./solicitudes-borrado");
+  await aprobarSolicitud(solicitudId, user.id);
+  revalidatePath("/admin/solicitudes-borrado");
+}
+
+export async function rechazarSolicitudBorradoAction(solicitudId: number) {
+  const user = await requireApprovedUser();
+  if (user.role !== "admin") throw new Error("No autorizado.");
+
+  const { rechazarSolicitud } = await import("./solicitudes-borrado");
+  await rechazarSolicitud(solicitudId, user.id);
+  revalidatePath("/admin/solicitudes-borrado");
 }
 
 const USER_STATUSES = new Set(["approved", "rejected", "pending"]);
