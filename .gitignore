@@ -32,9 +32,19 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
+
+# configuración local de Claude Code (no compartir)
+.claude/settings.local.json
+
+# base de datos local
+db/*.db
+db/*.db-journal
+db/*.db-wal
+db/*.db-shm
 
 # typescript
 *.tsbuildinfo
