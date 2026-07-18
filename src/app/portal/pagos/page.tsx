@@ -14,7 +14,6 @@ export default async function PortalPagosPage() {
         numero: string;
         fecha: string;
         monto: number;
-        metodo: string;
         referencia: string | null;
       }[])
     : [];
@@ -41,9 +40,6 @@ export default async function PortalPagosPage() {
                 <th className="px-4 py-2 text-left font-medium text-slate-600 dark:text-slate-300">
                   Fecha
                 </th>
-                <th className="px-4 py-2 text-left font-medium text-slate-600 dark:text-slate-300">
-                  Método
-                </th>
                 <th className="px-4 py-2 text-right font-medium text-slate-600 dark:text-slate-300">
                   Monto
                 </th>
@@ -54,7 +50,6 @@ export default async function PortalPagosPage() {
                 <tr key={p.id} className="transition hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
                   <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{p.numero || `#${p.id}`}</td>
                   <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{p.fecha}</td>
-                  <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{p.metodo}</td>
                   <td className="px-4 py-2 text-right text-slate-700 dark:text-slate-300">
                     {Number(p.monto).toLocaleString("es", { style: "currency", currency: "USD" })}
                   </td>

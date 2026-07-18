@@ -156,3 +156,72 @@ export async function buscarRegistroPorTitulo(mod: ModuleConfig, valor: string):
     .all(`%${valor}%`)) as { id: number }[];
   return rows.map((r) => r.id);
 }
+
+export interface ResumenCuentaCliente {
+  totalFacturado: number;
+  totalPagado: number;
+  saldo: number;
+  facturasRecientes: { numero: string; fecha: string; monto: number; estado: string | null }[];
+  pagosRecientes: { numero: string | null; fecha: string; monto: number }[];
+  prestamos: { id: number; estado: string; monto_solicitado: number; monto_a_devolver: number | null }[];
+  ticketsAbiertos: number;
+}
+
+export async function getResumenCuentaCliente(clienteId: number, userId: number): Promise<ResumenCuentaCliente> {
+  const db = getDb();
+  const [facturadoRow, pagadoRow, facturasRecientes, pagosRecientes, ticketsRow] = await Promise.all([
+    db.prepare(`SELECT COALESCE(SUM(monto), 0) as s FROM recibos WHERE cliente_id = ?`).get(clienteId) as Promise<{
+      s: number;
+    }>,
+    db.prepare(`SELECT COALESCE(SUM(monto), 0) as s FROM pagos WHERE cliente_id = ?`).get(clienteId) as Promise<{
+      s: number;
+    }>,
+    db
+      .prepare(`SELECT numero, fecha, monto, estado FROM recibos WHERE cliente_id = ? ORDER BY fecha DESC, id DESC LIMIT 8`)
+      .all(clienteId) as Promise<{ numero: string; fecha: string; monto: number; estado: string | null }[]>,
+    db
+      .prepare(`SELECT numero, fecha, monto FROM pagos WHERE cliente_id = ? ORDER BY fecha DESC, id DESC LIMIT 8`)
+      .all(clienteId) as Promise<{ numero: string | null; fecha: string; monto: number }[]>,
+    db
+      .prepare(`SELECT COUNT(*) as n FROM tickets WHERE cliente_user_id = ? AND estado != 'Cerrado'`)
+      .get(userId) as Promise<{ n: number }>,
+  ]);
+
+  const { listPrestamosForCliente } = await import("./prestamos");
+  const prestamos = await listPrestamosForCliente(userId);
+
+  return {
+    totalFacturado: facturadoRow.s,
+    totalPagado: pagadoRow.s,
+    saldo: facturadoRow.s - pagadoRow.s,
+    facturasRecientes,
+    pagosRecientes,
+    prestamos: prestamos.map((p) => ({
+      id: p.id,
+      estado: p.estado,
+      monto_solicitado: p.monto_solicitado,
+      monto_a_devolver: p.monto_a_devolver,
+    })),
+    ticketsAbiertos: ticketsRow.n,
+  };
+}
+
+export interface ResumenFinancieroCompacto {
+  activos: number;
+  pasivos: number;
+  patrimonio: number;
+  ingresos: number;
+  gastos: number;
+}
+
+export async function getResumenFinancieroCompacto(): Promise<ResumenFinancieroCompacto> {
+  const { getEstadosFinancieros } = await import("./estados-financieros");
+  const e = await getEstadosFinancieros();
+  return {
+    activos: e.activos.total,
+    pasivos: e.pasivos.total,
+    patrimonio: e.patrimonio.total,
+    ingresos: e.ingresos.total,
+    gastos: e.gastos.total,
+  };
+}

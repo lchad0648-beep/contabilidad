@@ -131,7 +131,7 @@ export default function AsistenteIA() {
     setSending(true);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60_000);
+    const timeoutId = setTimeout(() => controller.abort(), 180_000);
 
     try {
       const res = await fetch("/api/asistente", {

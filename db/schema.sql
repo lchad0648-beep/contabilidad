@@ -101,9 +101,11 @@ CREATE TABLE IF NOT EXISTS recibos (
   created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
+CREATE SEQUENCE IF NOT EXISTS pagos_numero_seq;
+
 CREATE TABLE IF NOT EXISTS pagos (
   id BIGSERIAL PRIMARY KEY,
-  numero TEXT,
+  numero TEXT DEFAULT ('PAG-' || lpad(nextval('pagos_numero_seq')::text, 6, '0')),
   cliente_id BIGINT REFERENCES clientes(id),
   fecha DATE NOT NULL DEFAULT CURRENT_DATE,
   monto DOUBLE PRECISION NOT NULL DEFAULT 0,

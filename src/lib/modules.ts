@@ -42,11 +42,9 @@ export const MODULES: ModuleConfig[] = [
     table: "pagos",
     titleField: "numero",
     fields: [
-      { name: "numero", label: "Número", type: "text", required: true },
       { name: "cliente_id", label: "Cliente", type: "ref", refTable: "clientes", refLabel: "nombre" },
       { name: "fecha", label: "Fecha", type: "date", required: true },
       { name: "monto", label: "Monto", type: "number", required: true },
-      { name: "metodo", label: "Método", type: "select", options: ["Efectivo", "Transferencia", "Tarjeta", "Cheque"] },
       { name: "referencia", label: "Referencia", type: "text" },
     ],
   },
@@ -141,9 +139,6 @@ export const MODULES: ModuleConfig[] = [
     titleField: "nombre",
     fields: [
       { name: "nombre", label: "Nombre", type: "text", required: true },
-      { name: "email", label: "Correo", type: "text" },
-      { name: "telefono", label: "Teléfono", type: "text" },
-      { name: "direccion", label: "Dirección", type: "text" },
       { name: "notas", label: "Notas", type: "textarea" },
     ],
   },

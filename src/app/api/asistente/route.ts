@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, type SessionUser } from "@/lib/auth";
 import { MODULES, type ModuleConfig } from "@/lib/modules";
 import { streamAssistantReply, type ChatMessage } from "@/lib/ai";
 import {
@@ -9,6 +9,8 @@ import {
   listUsuariosPendientes,
   listPrestamosPendientesResumen,
   listStaffUsuarios,
+  getResumenCuentaCliente,
+  getResumenFinancieroCompacto,
 } from "@/lib/asistente-contexto";
 
 const MAX_MENSAJES = 20;
@@ -89,7 +91,8 @@ function accionesDisponibles(role: string): string {
   return lineas.join("\n");
 }
 
-async function buildSystemPrompt(role: string, pagina: string | undefined): Promise<string> {
+async function buildSystemPrompt(user: SessionUser, pagina: string | undefined): Promise<string> {
+  const role = user.role;
   const modulosStaff = MODULES.map((m) => m.label).join(", ");
   const contextoRol =
     role === "cliente"
@@ -107,13 +110,25 @@ async function buildSystemPrompt(role: string, pagina: string | undefined): Prom
   ];
 
   if (role !== "cliente") {
-    const [facturas, tickets, modulos, prestamosPendientes, staff] = await Promise.all([
+    const [facturas, tickets, modulos, prestamosPendientes, staff, financiero] = await Promise.all([
       listFacturasPendientes(),
       listTicketsAbiertosResumen(),
       listResumenModulos(),
       listPrestamosPendientesResumen(),
       listStaffUsuarios(),
+      getResumenFinancieroCompacto(),
     ]);
+
+    partes.push(
+      [
+        "Resumen financiero real del negocio, en este momento (vista simplificada derivada de los módulos, no un balance certificado; úsalo para responder preguntas de reportes/estados financieros):",
+        `- Activos: ${financiero.activos}`,
+        `- Pasivos: ${financiero.pasivos}`,
+        `- Patrimonio: ${financiero.patrimonio}`,
+        `- Ingresos: ${financiero.ingresos}`,
+        `- Gastos: ${financiero.gastos}`,
+      ].join("\n")
+    );
 
     partes.push(
       facturas.length > 0
@@ -181,9 +196,34 @@ async function buildSystemPrompt(role: string, pagina: string | undefined): Prom
           : "No hay usuarios pendientes de aprobación en este momento."
       );
     }
-  } else {
+  } else if (user.cliente_id) {
+    const cuenta = await getResumenCuentaCliente(user.cliente_id, user.id);
     partes.push(
-      "No inventes datos financieros específicos del usuario (saldos, montos, nombres) que no te haya dado él mismo en la conversación; si pregunta por sus datos reales, indícale en qué sección de la app puede consultarlos."
+      [
+        "Datos reales de la cuenta de ESTE cliente, en este momento (úsalos tal cual para responder, no inventes otros ni muestres datos de otros clientes):",
+        `- Total facturado: ${cuenta.totalFacturado}`,
+        `- Total pagado: ${cuenta.totalPagado}`,
+        `- Saldo (positivo = debe, negativo = pagó de más): ${cuenta.saldo}`,
+        `- Tickets de soporte abiertos: ${cuenta.ticketsAbiertos}`,
+        cuenta.facturasRecientes.length > 0
+          ? `- Facturas recientes: ${cuenta.facturasRecientes
+              .map((f) => `${f.numero} (${f.fecha}, ${f.monto}, ${f.estado ?? "sin estado"})`)
+              .join(" ~ ")}`
+          : "- Sin facturas registradas todavía.",
+        cuenta.pagosRecientes.length > 0
+          ? `- Pagos recientes: ${cuenta.pagosRecientes
+              .map((p) => `${p.numero ?? "sin número"} (${p.fecha}, ${p.monto})`)
+              .join(" ~ ")}`
+          : "- Sin pagos registrados todavía.",
+        cuenta.prestamos.length > 0
+          ? `- Préstamos: ${cuenta.prestamos
+              .map((p) => `#${p.id} estado ${p.estado}, solicitado ${p.monto_solicitado}${p.monto_a_devolver ? `, a devolver ${p.monto_a_devolver}` : ""}`)
+              .join(" ~ ")}`
+          : "- Sin préstamos registrados todavía.",
+      ].join("\n")
+    );
+    partes.push(
+      "No inventes ningún dato de la cuenta que no esté en la lista de arriba; si te preguntan algo que no tienes (ej. facturas más antiguas que las listadas), indica en qué sección de la app puede consultarlo."
     );
   }
 
@@ -223,7 +263,7 @@ export async function POST(req: NextRequest) {
   }
 
   const messages: ChatMessage[] = [
-    { role: "system", content: await buildSystemPrompt(user.role, pagina) },
+    { role: "system", content: await buildSystemPrompt(user, pagina) },
     ...mensajesValidos,
   ];
 
