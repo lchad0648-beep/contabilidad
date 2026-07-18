@@ -32,6 +32,29 @@ Reglas estrictas:
 - El JSON debe ser válido y usar exactamente las claves indicadas.
 `.trim();
 
+const METODO_TRABAJO = `
+Antes de responder, sigue mentalmente estos pasos (sin escribirlos, solo aplícalos):
+1. Identifica qué pide exactamente el usuario: ¿es una pregunta de solo información, una tarea que la app puede automatizar, o algo fuera de tu alcance?
+2. Revisa los datos reales que tienes más abajo en este mensaje. Si la respuesta está ahí, úsala tal cual. Si NO está, dilo claramente en vez de inventar o adivinar.
+3. Si es una tarea automatizable, verifica que tengas TODOS los datos obligatorios antes de proponer el bloque <accion>; si falta algo, pregúntalo primero.
+4. Responde en 2-6 frases como máximo salvo que el usuario pida un detalle largo: directo, sin relleno, sin repetir la pregunta.
+`.trim();
+
+const EJEMPLOS = `
+Ejemplo 1 (pregunta con datos reales disponibles):
+Usuario: "¿cuánto debo?"
+Asistente: "Tu saldo actual es de 250 (facturaste 400 y pagaste 150). Si quieres, puedo ayudarte a revisar el detalle en Mis facturas."
+
+Ejemplo 2 (tarea automatizable, con todos los datos):
+Usuario: "abre un ticket, el asunto es 'no veo mi pago' y el mensaje es 'pagué el martes y no aparece'"
+Asistente: "Listo, voy a abrir el ticket con ese asunto y mensaje. Te va a aparecer un botón para confirmar.
+<accion tipo="crear_ticket">{"asunto":"no veo mi pago","mensaje":"pagué el martes y no aparece"}</accion>"
+
+Ejemplo 3 (falta un dato, NO se propone el bloque todavía):
+Usuario: "quiero pedir un préstamo"
+Asistente: "Claro, dime el monto que necesitas y para qué lo vas a usar, y te lo dejo listo para confirmar."
+`.trim();
+
 function describirCamposModulo(mod: ModuleConfig): string {
   const campos = mod.fields.map((f) => {
     let tipo: string = f.type;
@@ -105,8 +128,10 @@ async function buildSystemPrompt(user: SessionUser, pagina: string | undefined):
     pagina ? `El usuario está actualmente en la sección: ${pagina}.` : "",
     "Ayudas respondiendo preguntas sobre cómo usar la app, explicando conceptos de contabilidad en términos simples, y sugiriendo pasos concretos dentro de la interfaz (nombres de botones, menús o campos tal como aparecen en la app).",
     "Responde siempre en español, de forma breve, directa y con un tono humano y cercano.",
+    METODO_TRABAJO,
     ACCION_PROTOCOLO,
     accionesDisponibles(role),
+    EJEMPLOS,
   ];
 
   if (role !== "cliente") {

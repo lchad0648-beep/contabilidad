@@ -19,10 +19,10 @@ export async function streamAssistantReply(messages: ChatMessage[]): Promise<Rea
     body: JSON.stringify({
       model: MODEL,
       messages,
-      temperature: 1,
-      top_p: 0.95,
-      max_tokens: 3000,
-      chat_template_kwargs: { thinking: true },
+      temperature: 0.35,
+      top_p: 0.9,
+      max_tokens: 1400,
+      chat_template_kwargs: { thinking: false },
       stream: true,
     }),
   });
