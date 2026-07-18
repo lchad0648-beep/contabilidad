@@ -3,9 +3,54 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
+type AccionTipo = "crear_ticket" | "solicitar_prestamo" | "responder_ticket";
+type AccionEstado = "pendiente" | "ejecutando" | "confirmada" | "rechazada" | "error";
+
+interface Accion {
+  tipo: AccionTipo | string;
+  payload: Record<string, unknown>;
+  estado?: AccionEstado;
+  resultado?: string;
+  url?: string;
+}
+
 interface Mensaje {
   role: "user" | "assistant";
   content: string;
+  accion?: Accion;
+}
+
+const ACCION_REGEX = /<accion\s+tipo="([a-zA-Z_]+)">([\s\S]*?)<\/accion>\s*$/;
+
+function extraerAccion(texto: string): { cleanText: string; accion: Accion | null } {
+  const match = texto.match(ACCION_REGEX);
+  if (!match) return { cleanText: texto, accion: null };
+  try {
+    const payload = JSON.parse(match[2]);
+    if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+      throw new Error("payload inválido");
+    }
+    return {
+      cleanText: texto.slice(0, match.index).trim(),
+      accion: { tipo: match[1], payload, estado: "pendiente" },
+    };
+  } catch {
+    return { cleanText: texto, accion: null };
+  }
+}
+
+function describirAccion(accion: Accion): string {
+  const p = accion.payload;
+  switch (accion.tipo) {
+    case "crear_ticket":
+      return `Abrir un ticket de soporte:\n"${p.asunto}"\n${p.mensaje}`;
+    case "solicitar_prestamo":
+      return `Solicitar un préstamo de ${Number(p.monto).toLocaleString("es")} por: ${p.motivo}`;
+    case "responder_ticket":
+      return `Responder en el ticket #${p.ticket_id}:\n"${p.mensaje}"`;
+    default:
+      return "Realizar una acción en la app.";
+  }
 }
 
 export default function AsistenteIA() {
@@ -30,11 +75,15 @@ export default function AsistenteIA() {
     setText("");
     setSending(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60_000);
+
     try {
       const res = await fetch("/api/asistente", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mensajes: historial, pagina: pathname }),
+        signal: controller.signal,
       });
 
       if (!res.ok || !res.body) {
@@ -65,14 +114,61 @@ export default function AsistenteIA() {
           return next;
         });
       }
-    } catch {
+
+      const { cleanText, accion } = extraerAccion(acumulado);
       setMensajes((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { role: "assistant", content: "Ocurrió un error de conexión con el asistente." };
+        next[next.length - 1] = { role: "assistant", content: cleanText, accion: accion ?? undefined };
+        return next;
+      });
+    } catch (err) {
+      const mensaje =
+        err instanceof DOMException && err.name === "AbortError"
+          ? "El asistente está tardando demasiado en responder. Intenta de nuevo en un momento."
+          : "Ocurrió un error de conexión con el asistente.";
+      setMensajes((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { role: "assistant", content: mensaje };
         return next;
       });
     } finally {
+      clearTimeout(timeoutId);
       setSending(false);
+    }
+  }
+
+  function actualizarAccion(index: number, cambios: Partial<Accion>) {
+    setMensajes((prev) => {
+      const next = [...prev];
+      const actual = next[index];
+      if (!actual?.accion) return prev;
+      next[index] = { ...actual, accion: { ...actual.accion, ...cambios } };
+      return next;
+    });
+  }
+
+  function rechazarAccion(index: number) {
+    actualizarAccion(index, { estado: "rechazada", resultado: "Acción cancelada, no se hizo ningún cambio." });
+  }
+
+  async function confirmarAccion(index: number) {
+    const accion = mensajes[index]?.accion;
+    if (!accion) return;
+    actualizarAccion(index, { estado: "ejecutando" });
+    try {
+      const res = await fetch("/api/asistente/ejecutar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: accion.tipo, payload: accion.payload }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        actualizarAccion(index, { estado: "confirmada", resultado: data.mensaje, url: data.url });
+      } else {
+        actualizarAccion(index, { estado: "error", resultado: data?.error ?? "No se pudo completar la acción." });
+      }
+    } catch {
+      actualizarAccion(index, { estado: "error", resultado: "Error de conexión al ejecutar la acción." });
     }
   }
 
@@ -100,11 +196,12 @@ export default function AsistenteIA() {
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {mensajes.length === 0 && (
               <p className="text-center text-sm text-gray-400 dark:text-slate-500">
-                Pregúntame cómo usar la app, sobre algún módulo o pide una sugerencia.
+                Pregúntame algo, o pídeme que abra un ticket, solicite un préstamo o (si eres staff) responda a un
+                cliente.
               </p>
             )}
             {mensajes.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={i} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
                     m.role === "user"
@@ -114,6 +211,57 @@ export default function AsistenteIA() {
                 >
                   {m.content || (sending && i === mensajes.length - 1 ? "…" : "")}
                 </div>
+
+                {m.accion && (
+                  <div className="mt-1.5 max-w-[85%] rounded-xl border border-black/10 bg-amber-500/10 p-3 text-xs dark:border-white/10 dark:bg-amber-400/10">
+                    <p className="mb-2 whitespace-pre-wrap text-gray-700 dark:text-slate-200">
+                      {describirAccion(m.accion)}
+                    </p>
+
+                    {(!m.accion.estado || m.accion.estado === "pendiente") && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => confirmarAccion(i)}
+                          className="glass-button-accent rounded-full px-3 py-1 text-xs font-medium text-white"
+                        >
+                          Seguir adelante
+                        </button>
+                        <button
+                          onClick={() => rechazarAccion(i)}
+                          className="rounded-full border border-black/10 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-black/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                        >
+                          Rechazar
+                        </button>
+                      </div>
+                    )}
+
+                    {m.accion.estado === "ejecutando" && (
+                      <p className="text-gray-500 dark:text-slate-400">Ejecutando…</p>
+                    )}
+
+                    {m.accion.estado === "confirmada" && (
+                      <p className="text-emerald-600 dark:text-emerald-400">
+                        ✅ {m.accion.resultado}
+                        {m.accion.url && (
+                          <>
+                            {" "}
+                            <a href={m.accion.url} className="underline">
+                              Ver
+                            </a>
+                          </>
+                        )}
+                      </p>
+                    )}
+
+                    {m.accion.estado === "rechazada" && (
+                      <p className="text-gray-500 dark:text-slate-400">❎ {m.accion.resultado}</p>
+                    )}
+
+                    {m.accion.estado === "error" && (
+                      <p className="text-red-600 dark:text-red-400">⚠️ {m.accion.resultado}</p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             <div ref={bottomRef} />

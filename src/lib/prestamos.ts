@@ -46,6 +46,30 @@ const SELECT_PRESTAMO = `
   LEFT JOIN users ap ON ap.id = p.aprobado_por
 `;
 
+export async function crearPrestamo(
+  clienteUserId: number,
+  montoSolicitado: number,
+  motivo: string
+): Promise<number> {
+  const { createTicketForPrestamo } = await import("./tickets");
+  return withTransaction(async (tx) => {
+    const info = await tx
+      .prepare(`INSERT INTO prestamos (cliente_user_id, monto_solicitado, motivo) VALUES (?, ?, ?)`)
+      .run(clienteUserId, montoSolicitado, motivo);
+    const id = Number(info.lastInsertRowid);
+
+    const ticketId = await createTicketForPrestamo(
+      clienteUserId,
+      id,
+      `Solicitud de préstamo: $${montoSolicitado.toLocaleString("es")}`,
+      motivo,
+      tx
+    );
+    await tx.prepare(`UPDATE prestamos SET ticket_id = ? WHERE id = ?`).run(ticketId, id);
+    return id;
+  });
+}
+
 export async function listPrestamosForStaff(): Promise<PrestamoRow[]> {
   const db = getDb();
   return (await db

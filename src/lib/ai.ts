@@ -21,7 +21,7 @@ export async function streamAssistantReply(messages: ChatMessage[]): Promise<Rea
       messages,
       temperature: 0.7,
       top_p: 0.95,
-      max_tokens: 1024,
+      max_tokens: 400,
       chat_template_kwargs: { enable_thinking: false },
       stream: true,
     }),
@@ -36,6 +36,7 @@ export async function streamAssistantReply(messages: ChatMessage[]): Promise<Rea
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
+  let finished = false;
 
   function extractDelta(payload: string): string | null {
     try {
@@ -49,8 +50,14 @@ export async function streamAssistantReply(messages: ChatMessage[]): Promise<Rea
 
   return new ReadableStream<Uint8Array>({
     async pull(controller) {
+      if (finished) {
+        controller.close();
+        return;
+      }
+
       const { done, value } = await reader.read();
       if (done) {
+        finished = true;
         controller.close();
         return;
       }
@@ -62,7 +69,14 @@ export async function streamAssistantReply(messages: ChatMessage[]): Promise<Rea
         const trimmed = line.trim();
         if (!trimmed.startsWith("data:")) continue;
         const payload = trimmed.slice(5).trim();
-        if (payload === "[DONE]") continue;
+        if (payload === "[DONE]") {
+          // El servidor puede tardar en cerrar la conexión física; en cuanto
+          // vemos el sentinel de fin de stream, cerramos ya sin esperarlo.
+          finished = true;
+          controller.close();
+          reader.cancel().catch(() => {});
+          return;
+        }
         const delta = extractDelta(payload);
         if (delta) controller.enqueue(encoder.encode(delta));
       }

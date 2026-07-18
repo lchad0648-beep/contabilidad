@@ -118,25 +118,8 @@ export async function crearPrestamoAction(formData: FormData) {
   }
   if (!motivo) throw new Error("Indica el motivo del préstamo.");
 
-  const { withTransaction } = await import("./db");
-  const { createTicketForPrestamo } = await import("./tickets");
-
-  const prestamoId = await withTransaction(async (tx) => {
-    const info = await tx
-      .prepare(`INSERT INTO prestamos (cliente_user_id, monto_solicitado, motivo) VALUES (?, ?, ?)`)
-      .run(user.id, montoSolicitado, motivo);
-    const id = Number(info.lastInsertRowid);
-
-    const ticketId = await createTicketForPrestamo(
-      user.id,
-      id,
-      `Solicitud de préstamo: $${montoSolicitado.toLocaleString("es")}`,
-      motivo,
-      tx
-    );
-    await tx.prepare(`UPDATE prestamos SET ticket_id = ? WHERE id = ?`).run(ticketId, id);
-    return id;
-  });
+  const { crearPrestamo } = await import("./prestamos");
+  const prestamoId = await crearPrestamo(user.id, montoSolicitado, motivo);
 
   revalidatePath("/portal/prestamos");
   redirect(`/portal/prestamos/${prestamoId}`);
