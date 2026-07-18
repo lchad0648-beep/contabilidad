@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getModule } from "@/lib/modules";
+import { getModule, type ModuleConfig } from "@/lib/modules";
 
 const MAX_TEXTO = 4000;
 const PLAZO_UNIDADES = new Set(["dias", "semanas", "meses"]);
@@ -23,7 +23,71 @@ function numero(valor: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-async function resolverReferencias(mod: NonNullable<ReturnType<typeof getModule>>, datos: Record<string, unknown>) {
+type Resuelto<T = number> = { id: T } | { error: string };
+
+async function resolverPrestamoId(
+  p: Record<string, unknown>,
+  filtro?: (estado: string) => boolean
+): Promise<Resuelto> {
+  const idDirecto = numeroPositivo(p.prestamo_id);
+  if (idDirecto) return { id: idDirecto };
+
+  const cliente = texto(p.cliente, 60);
+  if (!cliente) return { error: "Falta el prestamo_id o el nombre del cliente." };
+
+  const { buscarPrestamosPorCliente } = await import("@/lib/asistente-contexto");
+  let candidatos = await buscarPrestamosPorCliente(cliente);
+  if (filtro) candidatos = candidatos.filter((c) => filtro(c.estado));
+
+  if (candidatos.length === 0) return { error: `No encontré un préstamo de "${cliente}" que coincida.` };
+  if (candidatos.length > 1) {
+    return {
+      error: `"${cliente}" tiene varios préstamos que coinciden (${candidatos
+        .map((c) => `#${c.id}`)
+        .join(", ")}); especifica el prestamo_id.`,
+    };
+  }
+  return { id: candidatos[0].id };
+}
+
+async function resolverTicketId(p: Record<string, unknown>): Promise<Resuelto> {
+  const idDirecto = numeroPositivo(p.ticket_id);
+  if (idDirecto) return { id: idDirecto };
+
+  const cliente = texto(p.cliente, 60);
+  const asunto = texto(p.asunto, 200);
+  if (!cliente && !asunto) return { error: "Falta el ticket_id, el cliente o el asunto del ticket." };
+
+  const { buscarTickets } = await import("@/lib/asistente-contexto");
+  const candidatos = await buscarTickets(cliente ?? undefined, asunto ?? undefined);
+
+  if (candidatos.length === 0) return { error: "No encontré ningún ticket que coincida." };
+  if (candidatos.length > 1) {
+    return {
+      error: `Hay varios tickets que coinciden (${candidatos.map((c) => `#${c.id}`).join(", ")}); especifica el ticket_id.`,
+    };
+  }
+  return { id: candidatos[0].id };
+}
+
+async function resolverRegistroId(mod: ModuleConfig, p: Record<string, unknown>): Promise<Resuelto> {
+  const idDirecto = numeroPositivo(p.id);
+  if (idDirecto) return { id: idDirecto };
+
+  const buscar = texto(p.buscar, 200);
+  if (!buscar) return { error: "Falta el id del registro, o un texto para buscarlo (parámetro 'buscar')." };
+
+  const { buscarRegistroPorTitulo } = await import("@/lib/asistente-contexto");
+  const ids = await buscarRegistroPorTitulo(mod, buscar);
+
+  if (ids.length === 0) return { error: `No encontré ningún registro de "${mod.label}" que coincida con "${buscar}".` };
+  if (ids.length > 1) {
+    return { error: `Hay varios registros de "${mod.label}" que coinciden (${ids.map((i) => `#${i}`).join(", ")}); especifica el id.` };
+  }
+  return { id: ids[0] };
+}
+
+async function resolverReferencias(mod: ModuleConfig, datos: Record<string, unknown>) {
   const { getRefOptions } = await import("@/lib/crud");
   const resultado: Record<string, unknown> = { ...datos };
   for (const field of mod.fields) {
@@ -108,7 +172,9 @@ export async function POST(req: NextRequest) {
       if (tipo === "crud_crear") {
         const datosRaw = typeof p.datos === "object" && p.datos !== null ? (p.datos as Record<string, unknown>) : {};
         const datos = await resolverReferencias(mod, datosRaw);
-        const faltantes = mod.fields.filter((f) => f.required && (datos[f.name] === undefined || datos[f.name] === null || datos[f.name] === ""));
+        const faltantes = mod.fields.filter(
+          (f) => f.required && (datos[f.name] === undefined || datos[f.name] === null || datos[f.name] === "")
+        );
         if (faltantes.length > 0) {
           return NextResponse.json(
             { error: `Faltan campos obligatorios: ${faltantes.map((f) => f.label).join(", ")}.` },
@@ -123,8 +189,9 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const id = numeroPositivo(p.id);
-      if (!id) return NextResponse.json({ error: "Falta el id del registro." }, { status: 400 });
+      const resuelto = await resolverRegistroId(mod, p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const id = resuelto.id;
 
       if (tipo === "crud_actualizar") {
         const datosRaw = typeof p.datos === "object" && p.datos !== null ? (p.datos as Record<string, unknown>) : {};
@@ -144,14 +211,13 @@ export async function POST(req: NextRequest) {
 
     // ---------- Tickets ----------
     if (tipo === "responder_ticket") {
-      const ticketId = numeroPositivo(p.ticket_id);
+      const resuelto = await resolverTicketId(p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const ticketId = resuelto.id;
       const mensaje = texto(p.mensaje);
-      if (!ticketId || !mensaje) {
-        return NextResponse.json({ error: "Falta el ticket_id o el mensaje de respuesta." }, { status: 400 });
-      }
-      const { getTicket, addMessage } = await import("@/lib/tickets");
-      const ticket = await getTicket(ticketId);
-      if (!ticket) return NextResponse.json({ error: "El ticket indicado no existe." }, { status: 404 });
+      if (!mensaje) return NextResponse.json({ error: "Falta el mensaje de respuesta." }, { status: 400 });
+
+      const { addMessage } = await import("@/lib/tickets");
       await addMessage(ticketId, user.id, mensaje);
       return NextResponse.json({
         ok: true,
@@ -161,15 +227,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (tipo === "asignar_ticket") {
-      const ticketId = numeroPositivo(p.ticket_id);
+      const resuelto = await resolverTicketId(p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const ticketId = resuelto.id;
       const a = texto(p.a, 60);
-      if (!ticketId || !a) {
-        return NextResponse.json({ error: "Falta el ticket_id o a quién asignarlo." }, { status: 400 });
-      }
-      const { getTicket, assignTicket } = await import("@/lib/tickets");
-      const ticket = await getTicket(ticketId);
-      if (!ticket) return NextResponse.json({ error: "El ticket indicado no existe." }, { status: 404 });
+      if (!a) return NextResponse.json({ error: "Falta a quién asignar el ticket." }, { status: 400 });
 
+      const { assignTicket } = await import("@/lib/tickets");
       let targetId = user.id;
       if (a.toLowerCase() !== "yo" && a.toLowerCase() !== "mí" && a.toLowerCase() !== user.username.toLowerCase()) {
         const { getUserIdByUsername } = await import("@/lib/asistente-contexto");
@@ -182,14 +246,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (tipo === "cambiar_estado_ticket") {
-      const ticketId = numeroPositivo(p.ticket_id);
+      const resuelto = await resolverTicketId(p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const ticketId = resuelto.id;
       const estado = texto(p.estado, 20);
-      if (!ticketId || !estado || !TICKET_ESTADOS.has(estado)) {
-        return NextResponse.json({ error: "Falta el ticket_id o el estado es inválido." }, { status: 400 });
+      if (!estado || !TICKET_ESTADOS.has(estado)) {
+        return NextResponse.json({ error: "El estado indicado no es válido." }, { status: 400 });
       }
-      const { getTicket, setTicketEstado } = await import("@/lib/tickets");
-      const ticket = await getTicket(ticketId);
-      if (!ticket) return NextResponse.json({ error: "El ticket indicado no existe." }, { status: 404 });
+      const { setTicketEstado } = await import("@/lib/tickets");
       await setTicketEstado(ticketId, estado);
       return NextResponse.json({
         ok: true,
@@ -200,14 +264,17 @@ export async function POST(req: NextRequest) {
 
     // ---------- Préstamos ----------
     if (tipo === "aprobar_prestamo") {
-      const prestamoId = numeroPositivo(p.prestamo_id);
+      const resuelto = await resolverPrestamoId(p, (estado) => estado === "Pendiente");
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const prestamoId = resuelto.id;
+
       const plazoValor = numeroPositivo(p.plazo_valor);
       const plazoUnidad = texto(p.plazo_unidad, 20);
       const tipoPago = texto(p.tipo_pago, 20);
       const tasaInteres = numero(p.tasa_interes);
       const numCuotas = numero(p.num_cuotas) ?? 1;
 
-      if (!prestamoId || !plazoValor || !plazoUnidad || !PLAZO_UNIDADES.has(plazoUnidad)) {
+      if (!plazoValor || !plazoUnidad || !PLAZO_UNIDADES.has(plazoUnidad)) {
         return NextResponse.json({ error: "Faltan datos válidos de plazo para aprobar el préstamo." }, { status: 400 });
       }
       if (!tipoPago || !TIPOS_PAGO.has(tipoPago)) {
@@ -232,19 +299,21 @@ export async function POST(req: NextRequest) {
     }
 
     if (tipo === "rechazar_prestamo") {
-      const prestamoId = numeroPositivo(p.prestamo_id);
-      if (!prestamoId) return NextResponse.json({ error: "Falta el prestamo_id." }, { status: 400 });
+      const resuelto = await resolverPrestamoId(p, (estado) => estado === "Pendiente");
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const prestamoId = resuelto.id;
       const { rechazarPrestamo } = await import("@/lib/prestamos");
       await rechazarPrestamo(prestamoId, user.id);
       return NextResponse.json({ ok: true, mensaje: `Listo, rechacé el préstamo #${prestamoId}.`, url: "/prestamos/" + prestamoId });
     }
 
     if (tipo === "reasignar_prestamo") {
-      const prestamoId = numeroPositivo(p.prestamo_id);
+      const resuelto = await resolverPrestamoId(p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const prestamoId = resuelto.id;
       const staffUsername = texto(p.staff_username, 60);
-      if (!prestamoId || !staffUsername) {
-        return NextResponse.json({ error: "Falta el prestamo_id o el usuario destino." }, { status: 400 });
-      }
+      if (!staffUsername) return NextResponse.json({ error: "Falta el usuario destino." }, { status: 400 });
+
       const { getUserIdByUsername } = await import("@/lib/asistente-contexto");
       const targetId = await getUserIdByUsername(staffUsername, true);
       if (!targetId) return NextResponse.json({ error: `No encontré a "${staffUsername}" entre el staff.` }, { status: 400 });
@@ -258,11 +327,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (tipo === "marcar_cuota_pagada") {
-      const prestamoId = numeroPositivo(p.prestamo_id);
+      const resuelto = await resolverPrestamoId(p);
+      if ("error" in resuelto) return NextResponse.json({ error: resuelto.error }, { status: 400 });
+      const prestamoId = resuelto.id;
       const numeroCuota = numeroPositivo(p.numero_cuota);
-      if (!prestamoId || !numeroCuota) {
-        return NextResponse.json({ error: "Falta el prestamo_id o el número de cuota." }, { status: 400 });
-      }
+      if (!numeroCuota) return NextResponse.json({ error: "Falta el número de cuota." }, { status: 400 });
+
       const { listCuotas, marcarCuotaPagada } = await import("@/lib/prestamos");
       const cuotas = await listCuotas(prestamoId);
       const cuota = cuotas.find((c) => c.numero === numeroCuota);

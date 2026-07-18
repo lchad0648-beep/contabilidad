@@ -131,3 +131,28 @@ export async function getUserIdByUsername(username: string, excludeCliente = fal
     .get(username)) as { id: number } | undefined;
   return row?.id ?? null;
 }
+
+export async function buscarPrestamosPorCliente(cliente: string) {
+  const { listPrestamosForStaff } = await import("./prestamos");
+  const prestamos = await listPrestamosForStaff();
+  const needle = cliente.trim().toLowerCase();
+  return prestamos.filter((p) => p.cliente_username.toLowerCase() === needle);
+}
+
+export async function buscarTickets(cliente?: string, asunto?: string) {
+  const { listTicketsForStaff } = await import("./tickets");
+  const tickets = await listTicketsForStaff();
+  return tickets.filter((t) => {
+    const clienteOk = cliente ? t.cliente_username.toLowerCase() === cliente.trim().toLowerCase() : true;
+    const asuntoOk = asunto ? t.asunto.toLowerCase().includes(asunto.trim().toLowerCase()) : true;
+    return clienteOk && asuntoOk;
+  });
+}
+
+export async function buscarRegistroPorTitulo(mod: ModuleConfig, valor: string): Promise<number[]> {
+  const db = getDb();
+  const rows = (await db
+    .prepare(`SELECT id FROM ${mod.table} WHERE ${mod.titleField}::text ILIKE ?`)
+    .all(`%${valor}%`)) as { id: number }[];
+  return rows.map((r) => r.id);
+}
