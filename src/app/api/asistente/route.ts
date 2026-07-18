@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { MODULES } from "@/lib/modules";
+import { MODULES, type ModuleConfig } from "@/lib/modules";
 import { streamAssistantReply, type ChatMessage } from "@/lib/ai";
-import { listFacturasPendientes, listTicketsAbiertosResumen } from "@/lib/asistente-contexto";
+import {
+  listFacturasPendientes,
+  listTicketsAbiertosResumen,
+  listResumenModulos,
+  listUsuariosPendientes,
+  listPrestamosPendientesResumen,
+  listStaffUsuarios,
+} from "@/lib/asistente-contexto";
 
 const MAX_MENSAJES = 20;
 const MAX_LARGO_MENSAJE = 4000;
@@ -16,25 +23,66 @@ como código al usuario, solo escríbelo tal cual al final):
 
 Reglas estrictas:
 - Solo un bloque <accion> por respuesta, y solo si tienes TODOS los datos requeridos.
-- Si falta un dato (por ejemplo el motivo o el monto), pregúntalo primero y NO incluyas el bloque todavía.
-- Nunca inventes montos, motivos, ids o mensajes que el usuario no te haya dado o confirmado.
+- Si falta un dato, pregúntalo primero y NO incluyas el bloque todavía.
+- Nunca inventes montos, motivos, ids, usernames o mensajes que el usuario no te haya dado o confirmado.
 - El bloque no se ejecuta solo: el usuario verá un botón para "Seguir adelante" o "Rechazar". Puedes mencionar que va a aparecer ese botón.
+- Para acciones irreversibles o sensibles (eliminar un registro, rechazar un usuario o un préstamo), menciona claramente en tu texto qué se va a hacer antes del bloque, para que la confirmación sea informada.
 - El JSON debe ser válido y usar exactamente las claves indicadas.
 `.trim();
+
+function describirCamposModulo(mod: ModuleConfig): string {
+  const campos = mod.fields.map((f) => {
+    let tipo: string = f.type;
+    if (f.type === "select" && f.options) tipo = `una de estas opciones: ${f.options.join("/")}`;
+    if (f.type === "ref") tipo = `nombre exacto de un registro existente en ${f.refTable}`;
+    if (f.type === "date") tipo = "fecha en formato YYYY-MM-DD";
+    if (f.type === "number") tipo = "número";
+    return `${f.name}${f.required ? " (obligatorio)" : ""}: ${tipo}`;
+  });
+  return `  * ${mod.slug} — ${campos.join("; ")}`;
+}
 
 function accionesDisponibles(role: string): string {
   if (role === "cliente") {
     return [
-      'Tipos de acción disponibles para este usuario (cliente):',
+      "Tipos de acción disponibles para este usuario (cliente):",
       '- crear_ticket: {"asunto": string, "mensaje": string} — abre un ticket de soporte para este cliente.',
       '- solicitar_prestamo: {"monto": number, "motivo": string} — crea una solicitud de préstamo para este cliente.',
     ].join("\n");
   }
-  return [
-    "Tipos de acción disponibles para este usuario (staff):",
+
+  const camposPorModulo = MODULES.map(describirCamposModulo).join("\n");
+
+  const lineas = [
+    "Tipos de acción disponibles para este usuario (staff). Tienes acceso a TODOS los módulos y funciones de gestión, no solo a una parte:",
+    "",
+    '- crud_crear: {"modulo": string (slug del módulo), "datos": {...campos...}} — crea un registro nuevo en cualquiera de los módulos de abajo.',
+    '- crud_actualizar: {"modulo": string, "id": number, "datos": {...campos a cambiar...}} — actualiza un registro existente (solo incluye los campos que cambian).',
+    '- crud_eliminar: {"modulo": string, "id": number} — elimina un registro. Es irreversible: antes de proponer el bloque, confirma en tu texto qué registro exacto se va a borrar.',
+    "",
+    "Módulos disponibles y sus campos (usa exactamente estos nombres de slug y de campo):",
+    camposPorModulo,
+    "",
     '- responder_ticket: {"ticket_id": number, "mensaje": string} — envía, en tu nombre, una respuesta dentro de un ticket de soporte existente, con tono humano, profesional y empático.',
-    "Usa el ticket_id exacto de la lista de tickets abiertos que se te da abajo; si no ves el ticket que el admin menciona, pregunta el número o el asunto antes de actuar.",
-  ].join("\n");
+    '- asignar_ticket: {"ticket_id": number, "a": string} — asigna un ticket a un miembro del staff. Usa "a": "yo" si el usuario pide asignárselo a sí mismo, o el username exacto de otro miembro del staff de la lista de abajo.',
+    '- cambiar_estado_ticket: {"ticket_id": number, "estado": "Abierto"|"En progreso"|"Cerrado"}',
+    "",
+    '- aprobar_prestamo: {"prestamo_id": number, "plazo_valor": number, "plazo_unidad": "dias"|"semanas"|"meses", "tipo_pago": "unico"|"cuotas", "num_cuotas": number, "tasa_interes": number} — aprueba una solicitud de préstamo pendiente y define sus condiciones. "num_cuotas" solo aplica si tipo_pago es "cuotas" (usa 1 si es "unico").',
+    '- rechazar_prestamo: {"prestamo_id": number}',
+    '- reasignar_prestamo: {"prestamo_id": number, "staff_username": string}',
+    '- marcar_cuota_pagada: {"prestamo_id": number, "numero_cuota": number} — marca como pagada una cuota específica de un préstamo.',
+  ];
+
+  if (role === "admin") {
+    lineas.push(
+      "",
+      "Acciones exclusivas de administrador:",
+      '- aprobar_usuario: {"username": string} — aprueba a un usuario de staff (admin/profesional) pendiente de aprobación.',
+      '- rechazar_usuario: {"username": string}'
+    );
+  }
+
+  return lineas.join("\n");
 }
 
 async function buildSystemPrompt(role: string, pagina: string | undefined): Promise<string> {
@@ -55,7 +103,13 @@ async function buildSystemPrompt(role: string, pagina: string | undefined): Prom
   ];
 
   if (role !== "cliente") {
-    const [facturas, tickets] = await Promise.all([listFacturasPendientes(), listTicketsAbiertosResumen()]);
+    const [facturas, tickets, modulos, prestamosPendientes, staff] = await Promise.all([
+      listFacturasPendientes(),
+      listTicketsAbiertosResumen(),
+      listResumenModulos(),
+      listPrestamosPendientesResumen(),
+      listStaffUsuarios(),
+    ]);
 
     partes.push(
       facturas.length > 0
@@ -79,6 +133,50 @@ async function buildSystemPrompt(role: string, pagina: string | undefined): Prom
           ].join("\n")
         : "No hay tickets de soporte abiertos en este momento."
     );
+
+    partes.push(
+      prestamosPendientes.length > 0
+        ? [
+            "Solicitudes de préstamo pendientes de revisión reales (usa estos prestamo_id, no inventes otros):",
+            ...prestamosPendientes.map(
+              (p) => `- prestamo_id ${p.id} | Cliente: ${p.cliente} | Monto solicitado: ${p.monto_solicitado} | Motivo: ${p.motivo}`
+            ),
+          ].join("\n")
+        : "No hay solicitudes de préstamo pendientes de revisión en este momento."
+    );
+
+    partes.push(
+      [
+        "Resumen real de TODOS los módulos de la app (total de registros y algunos recientes; usa estos datos tal cual, no inventes otros):",
+        ...modulos.map(
+          (m) =>
+            `- ${m.label} (slug: ${m.slug}): ${m.total} registro(s)${
+              m.recientes.length > 0 ? ` | recientes: ${m.recientes.join(" ~ ")}` : ""
+            }`
+        ),
+      ].join("\n")
+    );
+
+    partes.push(
+      staff.length > 0
+        ? [
+            "Miembros del staff disponibles para asignar tickets o préstamos (username | rol):",
+            ...staff.map((s) => `- ${s.username} | ${s.role}`),
+          ].join("\n")
+        : "No hay otros miembros de staff registrados."
+    );
+
+    if (role === "admin") {
+      const usuariosPendientes = await listUsuariosPendientes();
+      partes.push(
+        usuariosPendientes.length > 0
+          ? [
+              "Usuarios de staff pendientes de aprobación reales (usa estos usernames, no inventes otros):",
+              ...usuariosPendientes.map((u) => `- ${u.username} | rol solicitado: ${u.role}`),
+            ].join("\n")
+          : "No hay usuarios pendientes de aprobación en este momento."
+      );
+    }
   } else {
     partes.push(
       "No inventes datos financieros específicos del usuario (saldos, montos, nombres) que no te haya dado él mismo en la conversación; si pregunta por sus datos reales, indícale en qué sección de la app puede consultarlos."

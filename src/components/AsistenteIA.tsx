@@ -3,7 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
-type AccionTipo = "crear_ticket" | "solicitar_prestamo" | "responder_ticket";
+type AccionTipo =
+  | "crear_ticket"
+  | "solicitar_prestamo"
+  | "crud_crear"
+  | "crud_actualizar"
+  | "crud_eliminar"
+  | "responder_ticket"
+  | "asignar_ticket"
+  | "cambiar_estado_ticket"
+  | "aprobar_prestamo"
+  | "rechazar_prestamo"
+  | "reasignar_prestamo"
+  | "marcar_cuota_pagada"
+  | "aprobar_usuario"
+  | "rechazar_usuario";
 type AccionEstado = "pendiente" | "ejecutando" | "confirmada" | "rechazada" | "error";
 
 interface Accion {
@@ -39,6 +53,13 @@ function extraerAccion(texto: string): { cleanText: string; accion: Accion | nul
   }
 }
 
+function formatDatos(datos: unknown): string {
+  if (typeof datos !== "object" || datos === null) return "";
+  return Object.entries(datos as Record<string, unknown>)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(", ");
+}
+
 function describirAccion(accion: Accion): string {
   const p = accion.payload;
   switch (accion.tipo) {
@@ -46,8 +67,30 @@ function describirAccion(accion: Accion): string {
       return `Abrir un ticket de soporte:\n"${p.asunto}"\n${p.mensaje}`;
     case "solicitar_prestamo":
       return `Solicitar un préstamo de ${Number(p.monto).toLocaleString("es")} por: ${p.motivo}`;
+    case "crud_crear":
+      return `Crear un registro nuevo en "${p.modulo}":\n${formatDatos(p.datos)}`;
+    case "crud_actualizar":
+      return `Actualizar el registro #${p.id} de "${p.modulo}":\n${formatDatos(p.datos)}`;
+    case "crud_eliminar":
+      return `⚠️ Eliminar (irreversible) el registro #${p.id} de "${p.modulo}".`;
     case "responder_ticket":
       return `Responder en el ticket #${p.ticket_id}:\n"${p.mensaje}"`;
+    case "asignar_ticket":
+      return `Asignar el ticket #${p.ticket_id} a: ${p.a}`;
+    case "cambiar_estado_ticket":
+      return `Cambiar el estado del ticket #${p.ticket_id} a "${p.estado}".`;
+    case "aprobar_prestamo":
+      return `Aprobar el préstamo #${p.prestamo_id}: plazo ${p.plazo_valor} ${p.plazo_unidad}, ${p.tipo_pago === "cuotas" ? `${p.num_cuotas} cuotas` : "pago único"}, tasa ${p.tasa_interes}%.`;
+    case "rechazar_prestamo":
+      return `⚠️ Rechazar (irreversible) el préstamo #${p.prestamo_id}.`;
+    case "reasignar_prestamo":
+      return `Reasignar el préstamo #${p.prestamo_id} a: ${p.staff_username}`;
+    case "marcar_cuota_pagada":
+      return `Marcar la cuota ${p.numero_cuota} del préstamo #${p.prestamo_id} como pagada.`;
+    case "aprobar_usuario":
+      return `Aprobar al usuario de staff: ${p.username}`;
+    case "rechazar_usuario":
+      return `⚠️ Rechazar (irreversible) al usuario de staff: ${p.username}`;
     default:
       return "Realizar una acción en la app.";
   }
