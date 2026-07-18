@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import PortalNav from "@/components/PortalNav";
+import AsistenteIA from "@/components/AsistenteIA";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
@@ -28,6 +29,7 @@ export default async function PortalLayout({ children }: { children: React.React
         <PortalNav />
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 animate-fade-in-up">{children}</main>
+      <AsistenteIA />
     </div>
   );
 }

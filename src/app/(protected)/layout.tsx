@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
 import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
+import AsistenteIA from "@/components/AsistenteIA";
 import Link from "next/link";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +40,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         </header>
         <main className="flex-1 overflow-y-auto p-6 animate-fade-in-up">{children}</main>
       </div>
+      <AsistenteIA />
     </div>
   );
 }
