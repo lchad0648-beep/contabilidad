@@ -1,5 +1,5 @@
 const NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-const MODEL = "nvidia/nemotron-3-ultra-550b-a55b";
+const MODEL = "deepseek-ai/deepseek-v4-pro";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -19,10 +19,10 @@ export async function streamAssistantReply(messages: ChatMessage[]): Promise<Rea
     body: JSON.stringify({
       model: MODEL,
       messages,
-      temperature: 0.7,
+      temperature: 1,
       top_p: 0.95,
-      max_tokens: 400,
-      chat_template_kwargs: { enable_thinking: false },
+      max_tokens: 1024,
+      chat_template_kwargs: { thinking: false },
       stream: true,
     }),
   });
