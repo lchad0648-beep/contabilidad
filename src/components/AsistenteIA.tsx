@@ -88,7 +88,10 @@ export default function AsistenteIA() {
       </button>
 
       {open && (
-        <div className="glass-popover animate-fade-in-up fixed bottom-24 right-6 z-40 flex h-[32rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col rounded-2xl">
+        <div
+          className="glass-popover animate-fade-in-up fixed bottom-24 right-6 z-40 flex h-[32rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl"
+          style={{ isolation: "isolate" }}
+        >
           <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 dark:border-white/5">
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">✨ Asistente IA</p>
             <span className="text-xs text-slate-400 dark:text-slate-500">100% gratuito</span>
