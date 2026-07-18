@@ -89,21 +89,23 @@ export default function TicketChat({
   }
 
   return (
-    <div className="flex h-[32rem] flex-col rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="glass-card flex h-[32rem] flex-col rounded-2xl">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {mensajes.length === 0 && (
-          <p className="text-center text-sm text-gray-400">Sin mensajes todavía.</p>
+          <p className="text-center text-sm text-gray-400 dark:text-slate-500">Sin mensajes todavía.</p>
         )}
         {mensajes.map((m) => {
           const mine = m.user_id === currentUserId;
           return (
-            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"} animate-fade-in-up`}>
               <div
-                className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                  mine ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
+                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                  mine
+                    ? "glass-button-accent text-white"
+                    : "bg-black/5 text-gray-800 dark:bg-white/10 dark:text-slate-100"
                 }`}
               >
-                <div className={`mb-0.5 text-xs ${mine ? "text-blue-100" : "text-gray-500"}`}>
+                <div className={`mb-0.5 text-xs ${mine ? "text-blue-100" : "text-gray-500 dark:text-slate-400"}`}>
                   {m.username} {m.role !== "cliente" && "· staff"}
                 </div>
                 <div className="whitespace-pre-wrap">{m.mensaje}</div>
@@ -114,18 +116,18 @@ export default function TicketChat({
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleSend} className="flex gap-2 border-t border-gray-200 p-3">
+      <form onSubmit={handleSend} className="flex gap-2 border-t border-black/5 p-3 dark:border-white/5">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={closed || sending}
           placeholder={closed ? "Este ticket está cerrado" : "Escribe un mensaje..."}
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-100"
+          className="flex-1 rounded-full border border-black/10 bg-white/60 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:bg-black/5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:disabled:bg-white/[0.02]"
         />
         <button
           type="submit"
           disabled={closed || sending || !text.trim()}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="glass-button-accent rounded-full px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           Enviar
         </button>

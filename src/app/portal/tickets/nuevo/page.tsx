@@ -2,35 +2,38 @@ import { createTicketAction } from "@/lib/actions";
 
 export default function NewTicketPage() {
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Nuevo ticket de soporte</h1>
+    <div className="animate-fade-in-up">
+      <h1 className="mb-6 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        Nuevo ticket de soporte
+      </h1>
 
-      <form
-        action={createTicketAction}
-        className="max-w-xl space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-      >
+      <form action={createTicketAction} className="glass-card max-w-xl space-y-4 rounded-2xl p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Asunto</label>
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Asunto
+          </label>
           <input
             name="asunto"
             required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-black/10 bg-white/60 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
             placeholder="Ej: Duda sobre mi última factura"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Mensaje</label>
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Mensaje
+          </label>
           <textarea
             name="mensaje"
             required
             rows={5}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-black/10 bg-white/60 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
             placeholder="Cuéntanos en qué te podemos ayudar..."
           />
         </div>
         <button
           type="submit"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="glass-button-accent rounded-full px-4 py-2 text-sm font-medium text-white"
         >
           Enviar ticket
         </button>

@@ -27,13 +27,13 @@ export default async function EditModuleRecordPage({
   }
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-slate-100">
           {mod.icon} Editar — {mod.label}
         </h1>
         <form action={deleteModuleRecord.bind(null, mod.slug, recordId)}>
-          <button type="submit" className="text-sm text-red-600 hover:underline">
+          <button type="submit" className="text-sm text-red-600 hover:underline dark:text-red-400">
             Eliminar registro
           </button>
         </form>

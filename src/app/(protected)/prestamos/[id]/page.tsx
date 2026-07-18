@@ -37,7 +37,7 @@ export default async function StaffPrestamoDetailPage({
   const isPendiente = prestamo.estado === "Pendiente";
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="glass-card sticky top-0 z-10 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-4">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
@@ -69,7 +69,7 @@ export default async function StaffPrestamoDetailPage({
             <select
               name="staffUserId"
               defaultValue={prestamo.asignado_a ?? ""}
-              className="rounded-full border border-gray-300 bg-white/70 px-3 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100"
+              className="rounded-full border border-black/10 bg-white/60 px-3 py-1.5 text-xs text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
             >
               <option value="" disabled>
                 Reasignar a…
@@ -77,14 +77,14 @@ export default async function StaffPrestamoDetailPage({
               {staff
                 .filter((s) => s.id !== user.id)
                 .map((s) => (
-                  <option key={s.id} value={s.id}>
+                  <option key={s.id} value={s.id} className="dark:bg-slate-800">
                     {s.username} ({s.role})
                   </option>
                 ))}
             </select>
             <button
               type="submit"
-              className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-white/10"
+              className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-black/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
             >
               Enviar
             </button>
@@ -94,19 +94,19 @@ export default async function StaffPrestamoDetailPage({
 
       {prestamo.estado === "Aprobado" || prestamo.estado === "Pagado" ? (
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <div className="glass-card rounded-2xl p-4">
             <p className="text-xs text-gray-500 dark:text-slate-400">Monto a devolver</p>
             <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-slate-100">
               ${prestamo.monto_a_devolver?.toLocaleString("es")}
             </p>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <div className="glass-card rounded-2xl p-4">
             <p className="text-xs text-gray-500 dark:text-slate-400">Tasa de interés</p>
             <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-slate-100">
               {prestamo.tasa_interes}%
             </p>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <div className="glass-card rounded-2xl p-4">
             <p className="text-xs text-gray-500 dark:text-slate-400">Plazo</p>
             <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-slate-100">
               {prestamo.plazo_valor} {prestamo.plazo_unidad}
@@ -116,12 +116,12 @@ export default async function StaffPrestamoDetailPage({
       ) : null}
 
       {cuotas.length > 0 && (
-        <div className="mb-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <div className="border-b border-gray-100 px-5 py-3 dark:border-slate-700">
+        <div className="glass-card mb-6 overflow-hidden rounded-2xl">
+          <div className="border-b border-black/5 px-5 py-3 dark:border-white/5">
             <h2 className="text-sm font-semibold text-gray-800 dark:text-slate-100">Calendario de pagos</h2>
           </div>
-          <table className="min-w-full divide-y divide-gray-100 text-sm dark:divide-slate-700">
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+          <table className="min-w-full divide-y divide-black/5 text-sm dark:divide-white/5">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {cuotas.map((c) => (
                 <tr key={c.id}>
                   <td className="px-5 py-3 text-gray-600 dark:text-slate-300">Cuota #{c.numero}</td>
@@ -136,7 +136,10 @@ export default async function StaffPrestamoDetailPage({
                       </span>
                     ) : (
                       <form action={marcarCuotaPagadaAction.bind(null, c.id, prestamoId)}>
-                        <button type="submit" className="text-xs font-medium text-blue-600 hover:underline">
+                        <button
+                          type="submit"
+                          className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                        >
                           Marcar pagada
                         </button>
                       </form>

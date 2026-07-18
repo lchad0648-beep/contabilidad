@@ -33,7 +33,7 @@ export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number
             min="1"
             required
             defaultValue={30}
-            className="w-full rounded-md border border-slate-300 bg-white/70 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100"
+            className="w-full rounded-xl border border-black/10 bg-white/60 px-2 py-1.5 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
           />
         </div>
         <div>
@@ -41,7 +41,7 @@ export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number
           <select
             name="plazo_unidad"
             defaultValue="dias"
-            className="w-full rounded-md border border-slate-300 bg-white/70 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100"
+            className="w-full rounded-xl border border-black/10 bg-white/60 px-2 py-1.5 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
           >
             <option value="dias">Días</option>
             <option value="semanas">Semanas</option>
@@ -56,7 +56,7 @@ export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number
           name="tipo_pago"
           value={tipoPago}
           onChange={(e) => setTipoPago(e.target.value as "unico" | "cuotas")}
-          className="w-full rounded-md border border-slate-300 bg-white/70 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100"
+          className="w-full rounded-xl border border-black/10 bg-white/60 px-2 py-1.5 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
         >
           <option value="unico">Pago único al final del plazo</option>
           <option value="cuotas">Cuotas iguales durante el plazo</option>
@@ -74,7 +74,7 @@ export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number
             min="2"
             required
             defaultValue={3}
-            className="w-full rounded-md border border-slate-300 bg-white/70 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100"
+            className="w-full rounded-xl border border-black/10 bg-white/60 px-2 py-1.5 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
           />
         </div>
       )}
@@ -90,7 +90,7 @@ export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number
           step="0.01"
           required
           defaultValue={10}
-          className="w-full rounded-md border border-slate-300 bg-white/70 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100"
+          className="w-full rounded-xl border border-black/10 bg-white/60 px-2 py-1.5 text-sm text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
         />
       </div>
 

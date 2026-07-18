@@ -25,9 +25,9 @@ export default async function PortalTicketDetailPage({
   const mensajes = await listMessages(ticketId, 0);
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">{ticket.asunto}</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{ticket.asunto}</h1>
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTADO_COLOR[ticket.estado]}`}>
           {ticket.estado}
         </span>

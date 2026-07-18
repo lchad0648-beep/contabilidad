@@ -219,11 +219,6 @@ export async function marcarCuotaPagada(cuotaId: number) {
   });
 }
 
-export async function linkTicket(prestamoId: number, ticketId: number) {
-  const db = getDb();
-  await db.prepare(`UPDATE prestamos SET ticket_id = ? WHERE id = ?`).run(ticketId, prestamoId);
-}
-
 export interface CalendarioDia {
   fecha: string;
   total: number;

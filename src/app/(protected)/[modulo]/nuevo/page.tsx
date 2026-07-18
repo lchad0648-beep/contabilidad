@@ -21,8 +21,8 @@ export default async function NewModuleRecordPage({
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-semibold text-gray-900">
+    <div className="animate-fade-in-up">
+      <h1 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-slate-100">
         {mod.icon} Nuevo — {mod.label}
       </h1>
       <ModuleForm

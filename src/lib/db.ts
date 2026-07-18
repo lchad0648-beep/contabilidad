@@ -127,19 +127,16 @@ async function init(): Promise<void> {
   const username = process.env.ADMIN_USER || "admin";
   const password = process.env.ADMIN_PASSWORD || "admin123";
   const hash = bcrypt.hashSync(password, 10);
-  const result = await pool.query(
+  // ON CONFLICT ... DO UPDATE: si ADMIN_USER/ADMIN_PASSWORD cambian en las variables
+  // de entorno, el próximo arranque (cold start / redeploy) sincroniza la contraseña
+  // del admin sembrado en vez de dejarla congelada en el primer valor que tuvo.
+  await pool.query(
     `INSERT INTO users (username, password_hash, role, status, approved_at)
      VALUES ($1, $2, 'admin', 'approved', now())
-     ON CONFLICT (username) DO NOTHING
-     RETURNING id`,
+     ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash
+     WHERE users.role = 'admin'`,
     [username, hash]
   );
-  if (result.rows.length > 0) {
-    // eslint-disable-next-line no-console
-    console.log(
-      `\n[contabilidad] Usuario admin creado -> usuario: "${username}" contraseña: "${password}" (cámbiala luego). Configurable via ADMIN_USER / ADMIN_PASSWORD.\n`
-    );
-  }
 }
 
 export function getDb(): Db {

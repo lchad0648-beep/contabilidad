@@ -18,15 +18,17 @@ export default async function ResumenPage() {
   );
 
   return (
-    <div>
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900">Resumen</h1>
-      <p className="mb-6 text-sm text-gray-500">
+    <div className="animate-fade-in-up">
+      <h1 className="mb-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">Resumen</h1>
+      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Bienvenido, {user?.username}. Aquí tienes un vistazo general de todos los módulos.
       </p>
 
       <div className="mb-8">
-        <h2 className="mb-1 text-lg font-semibold text-gray-900">Resumen financiero</h2>
-        <p className="mb-4 text-xs text-gray-500">
+        <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-slate-100">
+          Resumen financiero
+        </h2>
+        <p className="mb-4 text-xs text-gray-500 dark:text-slate-400">
           Vista simplificada calculada a partir de tus módulos actuales (Recibos, Pagos, Cuentas de
           capital, Inversiones, etc.) — no reemplaza un balance contable certificado.
         </p>
@@ -45,19 +47,19 @@ export default async function ResumenPage() {
         </div>
       </div>
 
-      <h2 className="mb-3 text-lg font-semibold text-gray-900">Módulos</h2>
+      <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-slate-100">Módulos</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {counts.map((mod) => (
           <Link
             key={mod.slug}
             href={`/${mod.slug}`}
-            className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow"
+            className="glass-card flex items-center justify-between rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">{mod.icon}</span>
-              <span className="text-sm font-medium text-gray-700">{mod.label}</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{mod.label}</span>
             </div>
-            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700">
+            <span className="rounded-full bg-black/5 px-2.5 py-1 text-sm font-semibold text-gray-700 dark:bg-white/10 dark:text-slate-200">
               {mod.count}
             </span>
           </Link>
@@ -67,7 +69,7 @@ export default async function ResumenPage() {
       <div className="mt-8">
         <Link
           href="/reportes"
-          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="glass-button-accent inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white"
         >
           📈 Ver Reportes
         </Link>

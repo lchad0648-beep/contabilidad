@@ -27,31 +27,39 @@ export default async function PortalRecibosPage() {
     : [];
 
   return (
-    <div>
-      <h1 className="mb-1 text-2xl font-semibold text-slate-900">Mis facturas</h1>
-      <p className="mb-6 text-sm text-slate-500">{recibos.length} factura(s)</p>
+    <div className="animate-fade-in-up">
+      <h1 className="mb-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">Mis facturas</h1>
+      <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{recibos.length} factura(s)</p>
 
       {recibos.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+        <div className="glass-card rounded-2xl border-dashed p-10 text-center text-sm text-slate-500 dark:text-slate-400">
           Todavía no tienes facturas registradas.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50">
+        <div className="glass-card overflow-x-auto rounded-2xl">
+          <table className="min-w-full divide-y divide-black/5 text-sm dark:divide-white/5">
+            <thead className="bg-black/[0.02] dark:bg-white/[0.03]">
               <tr>
-                <th className="px-4 py-2 text-left font-medium text-slate-600">Número</th>
-                <th className="px-4 py-2 text-left font-medium text-slate-600">Fecha</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-600">Monto</th>
-                <th className="px-4 py-2 text-right font-medium text-slate-600">Estado</th>
+                <th className="px-4 py-2 text-left font-medium text-slate-600 dark:text-slate-300">
+                  Número
+                </th>
+                <th className="px-4 py-2 text-left font-medium text-slate-600 dark:text-slate-300">
+                  Fecha
+                </th>
+                <th className="px-4 py-2 text-right font-medium text-slate-600 dark:text-slate-300">
+                  Monto
+                </th>
+                <th className="px-4 py-2 text-right font-medium text-slate-600 dark:text-slate-300">
+                  Estado
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {recibos.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-2 text-slate-700">{r.numero || `#${r.id}`}</td>
-                  <td className="px-4 py-2 text-slate-500">{r.fecha}</td>
-                  <td className="px-4 py-2 text-right text-slate-700">
+                <tr key={r.id} className="transition hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
+                  <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{r.numero || `#${r.id}`}</td>
+                  <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{r.fecha}</td>
+                  <td className="px-4 py-2 text-right text-slate-700 dark:text-slate-300">
                     {Number(r.monto).toLocaleString("es", { style: "currency", currency: "USD" })}
                   </td>
                   <td className="px-4 py-2 text-right">

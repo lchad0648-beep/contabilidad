@@ -21,14 +21,14 @@ export default function ModuleForm({
   submitLabel: string;
 }) {
   return (
-    <form action={action} className="max-w-xl space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <form action={action} className="glass-card max-w-xl space-y-4 rounded-2xl p-6">
       {fields.map((field) => {
         const value = initialValues?.[field.name];
         return (
           <div key={field.name}>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
               {field.label}
-              {field.required && <span className="text-red-500"> *</span>}
+              {field.required && <span className="text-red-500 dark:text-red-400"> *</span>}
             </label>
             {renderInput(field, value, refOptions)}
           </div>
@@ -38,11 +38,14 @@ export default function ModuleForm({
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="glass-button-accent rounded-full px-4 py-2 text-sm font-medium text-white"
         >
           {submitLabel}
         </button>
-        <Link href={cancelHref} className="text-sm text-gray-600 hover:underline">
+        <Link
+          href={cancelHref}
+          className="text-sm text-gray-600 hover:underline dark:text-slate-400"
+        >
           Cancelar
         </Link>
       </div>
@@ -52,7 +55,7 @@ export default function ModuleForm({
 
 function renderInput(field: FieldConfig, value: unknown, refOptions: RefOptions) {
   const base =
-    "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none";
+    "w-full rounded-xl border border-black/10 bg-white/60 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100";
 
   if (field.type === "textarea") {
     return (
@@ -75,7 +78,7 @@ function renderInput(field: FieldConfig, value: unknown, refOptions: RefOptions)
         className={base}
       >
         {field.options?.map((opt) => (
-          <option key={opt} value={opt}>
+          <option key={opt} value={opt} className="dark:bg-slate-800">
             {opt}
           </option>
         ))}
@@ -92,9 +95,11 @@ function renderInput(field: FieldConfig, value: unknown, refOptions: RefOptions)
         required={field.required}
         className={base}
       >
-        <option value="">-- Ninguno --</option>
+        <option value="" className="dark:bg-slate-800">
+          -- Ninguno --
+        </option>
         {options.map((opt) => (
-          <option key={opt.id} value={opt.id}>
+          <option key={opt.id} value={opt.id} className="dark:bg-slate-800">
             {opt.label}
           </option>
         ))}

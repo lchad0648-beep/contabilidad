@@ -28,13 +28,13 @@ export default async function PortalPrestamoDetailPage({
   const mensajes = prestamo.ticket_id ? await listMessages(prestamo.ticket_id, 0) : [];
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Préstamo — ${prestamo.monto_solicitado.toLocaleString("es")}
           </h1>
-          <p className="text-sm text-slate-500">{prestamo.motivo}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{prestamo.motivo}</p>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-medium ${ESTADO_COLOR[prestamo.estado]}`}>
           {prestamo.estado}
@@ -43,45 +43,47 @@ export default async function PortalPrestamoDetailPage({
 
       {prestamo.estado === "Aprobado" || prestamo.estado === "Pagado" ? (
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-500">Monto a devolver</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
+          <div className="glass-card rounded-2xl p-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Monto a devolver</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
               ${prestamo.monto_a_devolver?.toLocaleString("es")}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-500">Tasa de interés</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{prestamo.tasa_interes}%</p>
+          <div className="glass-card rounded-2xl p-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Tasa de interés</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
+              {prestamo.tasa_interes}%
+            </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-500">Plazo</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
+          <div className="glass-card rounded-2xl p-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Plazo</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
               {prestamo.plazo_valor} {prestamo.plazo_unidad}
             </p>
           </div>
         </div>
       ) : prestamo.estado === "Pendiente" ? (
-        <div className="mb-6 rounded-xl border border-dashed border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800">
+        <div className="mb-6 rounded-2xl border border-dashed border-yellow-400/50 bg-yellow-500/10 p-4 text-sm text-yellow-800 dark:text-yellow-300">
           Tu solicitud está en revisión. Puedes usar el chat de abajo para agregar detalles.
         </div>
       ) : (
-        <div className="mb-6 rounded-xl border border-dashed border-red-300 bg-red-50 p-4 text-sm text-red-800">
+        <div className="mb-6 rounded-2xl border border-dashed border-red-400/50 bg-red-500/10 p-4 text-sm text-red-800 dark:text-red-300">
           Esta solicitud fue rechazada.
         </div>
       )}
 
       {cuotas.length > 0 && (
-        <div className="mb-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-3">
-            <h2 className="text-sm font-semibold text-slate-800">Calendario de pagos</h2>
+        <div className="glass-card mb-6 overflow-hidden rounded-2xl">
+          <div className="border-b border-black/5 px-5 py-3 dark:border-white/5">
+            <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Calendario de pagos</h2>
           </div>
-          <table className="min-w-full divide-y divide-slate-100 text-sm">
-            <tbody className="divide-y divide-slate-100">
+          <table className="min-w-full divide-y divide-black/5 text-sm dark:divide-white/5">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {cuotas.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-5 py-3 text-slate-600">Cuota #{c.numero}</td>
-                  <td className="px-5 py-3 text-slate-500">{c.fecha_vencimiento}</td>
-                  <td className="px-5 py-3 text-right text-slate-700">
+                  <td className="px-5 py-3 text-slate-600 dark:text-slate-300">Cuota #{c.numero}</td>
+                  <td className="px-5 py-3 text-slate-500 dark:text-slate-400">{c.fecha_vencimiento}</td>
+                  <td className="px-5 py-3 text-right text-slate-700 dark:text-slate-200">
                     ${c.monto.toLocaleString("es")}
                   </td>
                   <td className="px-5 py-3 text-right">

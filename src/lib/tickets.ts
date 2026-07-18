@@ -1,4 +1,4 @@
-import { getDb } from "./db";
+import { getDb, type Db } from "./db";
 
 export interface TicketRow {
   id: number;
@@ -71,24 +71,27 @@ export async function createTicket(
   asunto: string,
   primerMensaje: string
 ): Promise<number> {
-  const db = getDb();
-  const info = await db
-    .prepare(`INSERT INTO tickets (cliente_user_id, asunto) VALUES (?, ?)`)
-    .run(clienteUserId, asunto);
-  const ticketId = Number(info.lastInsertRowid);
-  await db
-    .prepare(`INSERT INTO ticket_mensajes (ticket_id, user_id, mensaje) VALUES (?, ?, ?)`)
-    .run(ticketId, clienteUserId, primerMensaje);
-  return ticketId;
+  const { withTransaction } = await import("./db");
+  return withTransaction(async (tx) => {
+    const info = await tx
+      .prepare(`INSERT INTO tickets (cliente_user_id, asunto) VALUES (?, ?)`)
+      .run(clienteUserId, asunto);
+    const ticketId = Number(info.lastInsertRowid);
+    await tx
+      .prepare(`INSERT INTO ticket_mensajes (ticket_id, user_id, mensaje) VALUES (?, ?, ?)`)
+      .run(ticketId, clienteUserId, primerMensaje);
+    return ticketId;
+  });
 }
 
 export async function createTicketForPrestamo(
   clienteUserId: number,
   prestamoId: number,
   asunto: string,
-  primerMensaje: string
+  primerMensaje: string,
+  dbOverride?: Db
 ): Promise<number> {
-  const db = getDb();
+  const db = dbOverride ?? getDb();
   const info = await db
     .prepare(
       `INSERT INTO tickets (cliente_user_id, asunto, tipo, prestamo_id) VALUES (?, ?, 'prestamo', ?)`
