@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Icon from "./Icon";
 
 type AccionTipo =
   | "crear_ticket"
@@ -73,6 +74,12 @@ function refTicket(p: Record<string, unknown>): string {
   return p.ticket_id != null ? `#${p.ticket_id}` : String(p.cliente ?? p.asunto ?? "?");
 }
 
+const ACCIONES_PELIGROSAS = new Set(["crud_eliminar", "rechazar_prestamo", "rechazar_usuario"]);
+
+function esPeligrosa(tipo: string): boolean {
+  return ACCIONES_PELIGROSAS.has(tipo);
+}
+
 function describirAccion(accion: Accion): string {
   const p = accion.payload;
   switch (accion.tipo) {
@@ -85,7 +92,7 @@ function describirAccion(accion: Accion): string {
     case "crud_actualizar":
       return `Actualizar el registro ${refRegistro(p)} de "${p.modulo}":\n${formatDatos(p.datos)}`;
     case "crud_eliminar":
-      return `⚠️ Eliminar (irreversible) el registro ${refRegistro(p)} de "${p.modulo}".`;
+      return `Eliminar (irreversible) el registro ${refRegistro(p)} de "${p.modulo}".`;
     case "solicitar_borrado":
       return `Enviar a un admin la solicitud de borrado del registro ${refRegistro(p)} de "${p.modulo}"${p.motivo ? `: ${p.motivo}` : ""}.`;
     case "responder_ticket":
@@ -97,7 +104,7 @@ function describirAccion(accion: Accion): string {
     case "aprobar_prestamo":
       return `Aprobar el préstamo de ${refPrestamo(p)}: plazo ${p.plazo_valor} ${p.plazo_unidad}, ${p.tipo_pago === "cuotas" ? `${p.num_cuotas} cuotas` : "pago único"}, tasa ${p.tasa_interes}%.`;
     case "rechazar_prestamo":
-      return `⚠️ Rechazar (irreversible) el préstamo de ${refPrestamo(p)}.`;
+      return `Rechazar (irreversible) el préstamo de ${refPrestamo(p)}.`;
     case "reasignar_prestamo":
       return `Reasignar el préstamo de ${refPrestamo(p)} a: ${p.staff_username}`;
     case "marcar_cuota_pagada":
@@ -105,7 +112,7 @@ function describirAccion(accion: Accion): string {
     case "aprobar_usuario":
       return `Aprobar al usuario de staff: ${p.username}`;
     case "rechazar_usuario":
-      return `⚠️ Rechazar (irreversible) al usuario de staff: ${p.username}`;
+      return `Rechazar (irreversible) al usuario de staff: ${p.username}`;
     default:
       return "Realizar una acción en la app.";
   }
@@ -236,9 +243,9 @@ export default function AsistenteIA() {
         onClick={() => setOpen((v) => !v)}
         aria-label="Abrir asistente de IA"
         title="Asistente IA"
-        className="glass-button-accent fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white shadow-lg transition hover:scale-110 active:scale-95"
+        className="glass-button-accent fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition hover:scale-110 active:scale-95"
       >
-        {open ? "✕" : "✨"}
+        <Icon name={open ? "x" : "sparkle"} size={26} />
       </button>
 
       {open && (
@@ -247,7 +254,9 @@ export default function AsistenteIA() {
           style={{ isolation: "isolate" }}
         >
           <div className="flex items-center justify-between border-b border-black/5 px-4 py-3 dark:border-white/5">
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">✨ Asistente IA</p>
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
+              <Icon name="sparkle" size={16} /> Asistente IA
+            </p>
             <span className="text-xs text-slate-400 dark:text-slate-500">100% gratuito</span>
           </div>
 
@@ -272,8 +281,11 @@ export default function AsistenteIA() {
 
                 {m.accion && (
                   <div className="mt-1.5 max-w-[85%] rounded-xl border border-black/10 bg-amber-500/10 p-3 text-xs dark:border-white/10 dark:bg-amber-400/10">
-                    <p className="mb-2 whitespace-pre-wrap text-gray-700 dark:text-slate-200">
-                      {describirAccion(m.accion)}
+                    <p className="mb-2 flex items-start gap-1.5 whitespace-pre-wrap text-gray-700 dark:text-slate-200">
+                      {esPeligrosa(m.accion.tipo) && (
+                        <Icon name="alert-triangle" size={14} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                      )}
+                      <span>{describirAccion(m.accion)}</span>
                     </p>
 
                     {(!m.accion.estado || m.accion.estado === "pendiente") && (
@@ -298,25 +310,34 @@ export default function AsistenteIA() {
                     )}
 
                     {m.accion.estado === "confirmada" && (
-                      <p className="text-emerald-600 dark:text-emerald-400">
-                        ✅ {m.accion.resultado}
-                        {m.accion.url && (
-                          <>
-                            {" "}
-                            <a href={m.accion.url} className="underline">
-                              Ver
-                            </a>
-                          </>
-                        )}
+                      <p className="flex items-start gap-1.5 text-emerald-600 dark:text-emerald-400">
+                        <Icon name="check-circle" size={14} className="mt-0.5 shrink-0" />
+                        <span>
+                          {m.accion.resultado}
+                          {m.accion.url && (
+                            <>
+                              {" "}
+                              <a href={m.accion.url} className="underline">
+                                Ver
+                              </a>
+                            </>
+                          )}
+                        </span>
                       </p>
                     )}
 
                     {m.accion.estado === "rechazada" && (
-                      <p className="text-gray-500 dark:text-slate-400">❎ {m.accion.resultado}</p>
+                      <p className="flex items-start gap-1.5 text-gray-500 dark:text-slate-400">
+                        <Icon name="x-circle" size={14} className="mt-0.5 shrink-0" />
+                        <span>{m.accion.resultado}</span>
+                      </p>
                     )}
 
                     {m.accion.estado === "error" && (
-                      <p className="text-red-600 dark:text-red-400">⚠️ {m.accion.resultado}</p>
+                      <p className="flex items-start gap-1.5 text-red-600 dark:text-red-400">
+                        <Icon name="alert-triangle" size={14} className="mt-0.5 shrink-0" />
+                        <span>{m.accion.resultado}</span>
+                      </p>
                     )}
                   </div>
                 )}
@@ -336,9 +357,9 @@ export default function AsistenteIA() {
             <button
               type="submit"
               disabled={sending || !text.trim()}
-              className="glass-button-accent rounded-full px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="glass-button-accent flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              ➤
+              <Icon name="send" size={16} />
             </button>
           </form>
         </div>

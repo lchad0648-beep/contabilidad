@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getModule } from "@/lib/modules";
 import { listRecords, getRefOptions } from "@/lib/crud";
-import { deleteModuleRecord } from "@/lib/actions";
+import { deleteModuleRecord, solicitarBorradoAction } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/auth";
+import Icon, { type IconName } from "@/components/Icon";
 
 export default async function ModuleListPage({
   params,
@@ -12,6 +14,9 @@ export default async function ModuleListPage({
   const { modulo } = await params;
   const mod = getModule(modulo);
   if (!mod) notFound();
+
+  const user = await getCurrentUser();
+  const esAdmin = user?.role === "admin";
 
   const records = await listRecords(mod);
   const displayFields = mod.fields.filter((f) => f.type !== "textarea");
@@ -28,8 +33,8 @@ export default async function ModuleListPage({
     <div className="animate-fade-in-up">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-slate-100">
-            {mod.icon} {mod.label}
+          <h1 className="flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+            <Icon name={mod.icon as IconName} size={22} /> {mod.label}
           </h1>
           <p className="text-sm text-gray-500 dark:text-slate-400">{records.length} registro(s)</p>
         </div>
@@ -78,14 +83,25 @@ export default async function ModuleListPage({
                     >
                       Editar
                     </Link>
-                    <form
-                      action={deleteModuleRecord.bind(null, mod.slug, Number(record.id))}
-                      className="inline"
-                    >
-                      <button type="submit" className="text-red-600 hover:underline dark:text-red-400">
-                        Eliminar
-                      </button>
-                    </form>
+                    {esAdmin ? (
+                      <form
+                        action={deleteModuleRecord.bind(null, mod.slug, Number(record.id))}
+                        className="inline"
+                      >
+                        <button type="submit" className="text-red-600 hover:underline dark:text-red-400">
+                          Eliminar
+                        </button>
+                      </form>
+                    ) : (
+                      <form
+                        action={solicitarBorradoAction.bind(null, mod.slug, Number(record.id))}
+                        className="inline"
+                      >
+                        <button type="submit" className="text-red-600 hover:underline dark:text-red-400">
+                          Solicitar borrado
+                        </button>
+                      </form>
+                    )}
                   </td>
                 </tr>
               ))}

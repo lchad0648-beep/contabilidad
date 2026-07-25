@@ -23,7 +23,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "recibos",
     label: "Recibos",
-    icon: "🧾",
+    icon: "receipt",
     table: "recibos",
     titleField: "numero",
     fields: [
@@ -38,7 +38,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "pagos",
     label: "Pagos",
-    icon: "💳",
+    icon: "credit-card",
     table: "pagos",
     titleField: "numero",
     fields: [
@@ -51,7 +51,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "clientes",
     label: "Clientes",
-    icon: "🏢",
+    icon: "building",
     table: "clientes",
     titleField: "nombre",
     fields: [
@@ -65,7 +65,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "notas-de-credito",
     label: "Notas de crédito",
-    icon: "✂️",
+    icon: "receipt-discount",
     table: "notas_credito",
     titleField: "numero",
     fields: [
@@ -79,7 +79,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "cargos-por-pago-atrasado",
     label: "Cargos por pago atrasado",
-    icon: "🔔",
+    icon: "bell",
     table: "cargos_pago_atrasado",
     titleField: "descripcion",
     fields: [
@@ -92,7 +92,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "notas-de-entrega",
     label: "Notas de entrega",
-    icon: "🚚",
+    icon: "truck",
     table: "notas_entrega",
     titleField: "numero",
     fields: [
@@ -106,7 +106,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "tiempo-facturable",
     label: "Tiempo facturable",
-    icon: "⏱️",
+    icon: "clock",
     table: "tiempo_facturable",
     titleField: "descripcion",
     fields: [
@@ -120,7 +120,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "recibos-retencion-impuestos",
     label: "Recibos de retención de impuestos",
-    icon: "📎",
+    icon: "paperclip",
     table: "recibos_retencion_impuestos",
     titleField: "numero",
     fields: [
@@ -134,7 +134,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "proveedores",
     label: "Proveedores",
-    icon: "🏭",
+    icon: "building2",
     table: "proveedores",
     titleField: "nombre",
     fields: [
@@ -145,7 +145,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "cotizaciones-de-compras",
     label: "Cotizaciones de Compras",
-    icon: "📋",
+    icon: "clipboard-text",
     table: "cotizaciones_compras",
     titleField: "numero",
     fields: [
@@ -159,7 +159,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "notas-de-debito",
     label: "Notas de débito",
-    icon: "✂️",
+    icon: "receipt-minus",
     table: "notas_debito",
     titleField: "numero",
     fields: [
@@ -173,7 +173,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "recepcion-de-bienes",
     label: "Recepción de bienes",
-    icon: "📥",
+    icon: "inbox-in",
     table: "recepcion_bienes",
     titleField: "numero",
     fields: [
@@ -187,7 +187,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "transferencias-de-inventario",
     label: "Transferencias de Inventario",
-    icon: "🔀",
+    icon: "shuffle",
     table: "transferencias_inventario",
     titleField: "articulo",
     fields: [
@@ -201,7 +201,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "inversiones",
     label: "Inversiones",
-    icon: "📊",
+    icon: "chart-bar",
     table: "inversiones",
     titleField: "nombre",
     fields: [
@@ -215,7 +215,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "activos-intangibles",
     label: "Activos Intangibles",
-    icon: "💠",
+    icon: "diamonds",
     table: "activos_intangibles",
     titleField: "nombre",
     fields: [
@@ -228,7 +228,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "cuentas-de-capital",
     label: "Cuentas de capital",
-    icon: "🏦",
+    icon: "bank",
     table: "cuentas_capital",
     titleField: "nombre",
     fields: [
@@ -241,7 +241,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "cuentas-especiales",
     label: "Cuentas especiales",
-    icon: "🔗",
+    icon: "link",
     table: "cuentas_especiales",
     titleField: "nombre",
     fields: [
@@ -254,7 +254,7 @@ export const MODULES: ModuleConfig[] = [
   {
     slug: "asientos-de-diario",
     label: "Asientos de diario",
-    icon: "⚖️",
+    icon: "scale",
     table: "asientos_diario",
     titleField: "cuenta",
     fields: [

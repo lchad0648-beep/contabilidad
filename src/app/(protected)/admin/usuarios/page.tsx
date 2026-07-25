@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { setUserStatus } from "@/lib/actions";
+import Icon from "@/components/Icon";
 
 interface UserRow {
   id: number;
@@ -47,7 +48,9 @@ export default async function AdminUsuariosPage() {
 
   return (
     <div className="animate-fade-in-up">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">🛡️ Usuarios</h1>
+      <h1 className="mb-1 flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+        <Icon name="shield" size={22} /> Usuarios
+      </h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Solo los usuarios que apruebes aquí podrán iniciar sesión en el sistema.
       </p>

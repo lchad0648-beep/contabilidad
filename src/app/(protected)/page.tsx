@@ -4,6 +4,7 @@ import { MODULES } from "@/lib/modules";
 import { getCurrentUser } from "@/lib/auth";
 import { getEstadosFinancieros } from "@/lib/estados-financieros";
 import FinancialStatementCard from "@/components/FinancialStatementCard";
+import Icon, { type IconName } from "@/components/Icon";
 
 export default async function ResumenPage() {
   const user = await getCurrentUser();
@@ -56,7 +57,7 @@ export default async function ResumenPage() {
             className="glass-card flex items-center justify-between rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl">{mod.icon}</span>
+              <Icon name={mod.icon as IconName} size={20} />
               <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{mod.label}</span>
             </div>
             <span className="rounded-full bg-black/5 px-2.5 py-1 text-sm font-semibold text-gray-700 dark:bg-white/10 dark:text-slate-200">
@@ -71,7 +72,7 @@ export default async function ResumenPage() {
           href="/reportes"
           className="glass-button-accent inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white"
         >
-          📈 Ver Reportes
+          <Icon name="chart-line" size={16} /> Ver Reportes
         </Link>
       </div>
     </div>

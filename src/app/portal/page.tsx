@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import Icon from "@/components/Icon";
 
 const ESTADO_COLOR: Record<string, string> = {
   Borrador: "bg-gray-100 text-gray-600",
@@ -51,7 +52,7 @@ export default async function PortalDashboard() {
   return (
     <div className="animate-fade-in-up">
       <h1 className="mb-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
-        Hola, {user?.username} 👋
+        Hola, {user?.username}
       </h1>
       <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">Este es el resumen de tu cuenta.</p>
 
@@ -82,9 +83,9 @@ export default async function PortalDashboard() {
       <div className="mb-8 flex flex-wrap gap-3">
         <Link
           href="/portal/tickets/nuevo"
-          className="glass-button-accent rounded-full px-4 py-2 text-sm font-medium text-white"
+          className="glass-button-accent flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white"
         >
-          💬 Abrir un ticket de soporte
+          <Icon name="message-circle" size={16} /> Abrir un ticket de soporte
         </Link>
         <Link
           href="/portal/tickets"

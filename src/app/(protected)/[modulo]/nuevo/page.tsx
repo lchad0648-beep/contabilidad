@@ -3,6 +3,7 @@ import { getModule } from "@/lib/modules";
 import { getRefOptions } from "@/lib/crud";
 import { createModuleRecord } from "@/lib/actions";
 import ModuleForm from "@/components/ModuleForm";
+import Icon, { type IconName } from "@/components/Icon";
 
 export default async function NewModuleRecordPage({
   params,
@@ -22,8 +23,8 @@ export default async function NewModuleRecordPage({
 
   return (
     <div className="animate-fade-in-up">
-      <h1 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-slate-100">
-        {mod.icon} Nuevo — {mod.label}
+      <h1 className="mb-6 flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+        <Icon name={mod.icon as IconName} size={22} /> Nuevo — {mod.label}
       </h1>
       <ModuleForm
         fields={mod.fields}

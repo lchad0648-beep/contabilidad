@@ -4,6 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import AsistenteIA from "@/components/AsistenteIA";
+import Icon from "@/components/Icon";
 import Link from "next/link";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -26,9 +27,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <div className="flex items-center gap-4">
             <Link
               href="/reportes"
-              className="glass-button-accent rounded-full px-3 py-1.5 text-sm font-medium text-white"
+              className="glass-button-accent flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-white"
             >
-              📈 Reportes
+              <Icon name="chart-line" size={16} /> Reportes
             </Link>
             <span className="text-sm text-gray-600 dark:text-slate-300">
               {user.username}{" "}

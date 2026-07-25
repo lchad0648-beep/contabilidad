@@ -6,6 +6,7 @@ import { listMessages } from "@/lib/tickets";
 import TicketChat from "@/components/TicketChat";
 import AprobarPrestamoForm from "@/components/AprobarPrestamoForm";
 import { rechazarPrestamoAction, reasignarPrestamoAction, marcarCuotaPagadaAction } from "@/lib/actions";
+import Icon from "@/components/Icon";
 
 const ESTADO_COLOR: Record<string, string> = {
   Pendiente: "bg-yellow-100 text-yellow-800",
@@ -57,9 +58,9 @@ export default async function StaffPrestamoDetailPage({
               <form action={rechazarPrestamoAction.bind(null, prestamoId)}>
                 <button
                   type="submit"
-                  className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                  className="flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-red-700"
                 >
-                  ✕ Rechazar
+                  <Icon name="x" size={14} /> Rechazar
                 </button>
               </form>
             </>

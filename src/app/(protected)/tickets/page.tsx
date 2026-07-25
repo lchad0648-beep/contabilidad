@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listTicketsForStaff } from "@/lib/tickets";
+import Icon from "@/components/Icon";
 
 const ESTADO_COLOR: Record<string, string> = {
   Abierto: "bg-yellow-100 text-yellow-800",
@@ -12,8 +13,8 @@ export default async function StaffTicketsPage() {
 
   return (
     <div className="animate-fade-in-up">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
-        💬 Tickets de soporte
+      <h1 className="mb-1 flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+        <Icon name="message-circle" size={22} /> Tickets de soporte
       </h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Consultas abiertas por los clientes.

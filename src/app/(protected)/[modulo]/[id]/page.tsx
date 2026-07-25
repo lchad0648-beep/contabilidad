@@ -5,6 +5,7 @@ import { getRecord, getRefOptions } from "@/lib/crud";
 import { updateModuleRecord, deleteModuleRecord, solicitarBorradoAction } from "@/lib/actions";
 import { getDb } from "@/lib/db";
 import ModuleForm from "@/components/ModuleForm";
+import Icon, { type IconName } from "@/components/Icon";
 
 export default async function EditModuleRecordPage({
   params,
@@ -45,8 +46,8 @@ export default async function EditModuleRecordPage({
   return (
     <div className="animate-fade-in-up">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-slate-100">
-          {mod.icon} Editar — {mod.label}
+        <h1 className="flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+          <Icon name={mod.icon as IconName} size={22} /> Editar — {mod.label}
         </h1>
         {esAdmin ? (
           <form action={deleteModuleRecord.bind(null, mod.slug, recordId)}>

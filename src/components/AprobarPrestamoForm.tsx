@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { aprobarPrestamoAction } from "@/lib/actions";
+import Icon from "./Icon";
 
 export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number }) {
   const [open, setOpen] = useState(false);
@@ -11,9 +12,9 @@ export default function AprobarPrestamoForm({ prestamoId }: { prestamoId: number
     return (
       <button
         onClick={() => setOpen(true)}
-        className="glass-button-accent rounded-full px-4 py-1.5 text-sm font-semibold text-white transition"
+        className="glass-button-accent flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold text-white transition"
       >
-        ✓ Aceptar
+        <Icon name="check" size={14} /> Aceptar
       </button>
     );
   }

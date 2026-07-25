@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getModule } from "@/lib/modules";
 import { listSolicitudes } from "@/lib/solicitudes-borrado";
 import { aprobarSolicitudBorradoAction, rechazarSolicitudBorradoAction } from "@/lib/actions";
+import Icon, { type IconName } from "@/components/Icon";
 
 const ESTADO_COLOR: Record<string, string> = {
   Pendiente: "bg-yellow-100 text-yellow-800",
@@ -18,8 +19,8 @@ export default async function SolicitudesBorradoPage() {
 
   return (
     <div className="animate-fade-in-up">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
-        🗑️ Solicitudes de borrado
+      <h1 className="mb-1 flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+        <Icon name="trash" size={22} /> Solicitudes de borrado
       </h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Los profesionales no pueden eliminar registros directamente: piden tu aprobación aquí.
@@ -50,7 +51,13 @@ export default async function SolicitudesBorradoPage() {
                 return (
                   <tr key={s.id} className="transition hover:bg-black/[0.02] dark:hover:bg-white/[0.03]">
                     <td className="px-4 py-2 text-gray-700 dark:text-slate-300">
-                      {mod ? `${mod.icon} ${mod.label}` : s.modulo}
+                      {mod ? (
+                        <span className="flex items-center gap-1.5">
+                          <Icon name={mod.icon as IconName} size={16} /> {mod.label}
+                        </span>
+                      ) : (
+                        s.modulo
+                      )}
                     </td>
                     <td className="px-4 py-2 text-gray-700 dark:text-slate-300">
                       {mod ? (

@@ -1,4 +1,5 @@
 import { getReportRows } from "@/lib/reports";
+import Icon from "@/components/Icon";
 
 export default async function ReportesPage({
   searchParams,
@@ -15,7 +16,9 @@ export default async function ReportesPage({
 
   return (
     <div className="animate-fade-in-up">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">📈 Reportes</h1>
+      <h1 className="mb-1 flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+        <Icon name="chart-line" size={22} /> Reportes
+      </h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Totales y conteos por módulo. Filtra por rango de fechas (aplica a los módulos con fecha).
       </p>

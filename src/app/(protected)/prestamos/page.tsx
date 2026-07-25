@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPrestamosForStaff } from "@/lib/prestamos";
 import LoanCalendar from "@/components/LoanCalendar";
+import Icon from "@/components/Icon";
 
 const ESTADO_COLOR: Record<string, string> = {
   Pendiente: "bg-yellow-100 text-yellow-800",
@@ -15,7 +16,9 @@ export default async function StaffPrestamosPage() {
 
   return (
     <div className="animate-fade-in-up">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">💰 Préstamos</h1>
+      <h1 className="mb-1 flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+        <Icon name="wallet" size={22} /> Préstamos
+      </h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Solicitudes de clientes y calendario de cobros esperados.
       </p>
