@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MODULES } from "@/lib/modules";
+import { MODULES, categoryTextClass } from "@/lib/modules";
 import Icon, { type IconName } from "./Icon";
 
 const NAV_ITEM =
@@ -28,6 +28,7 @@ export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
           icon={mod.icon as IconName}
           label={mod.label}
           active={pathname?.startsWith(`/${mod.slug}`)}
+          categoryClass={categoryTextClass(mod.category)}
         />
       ))}
 
@@ -72,17 +73,27 @@ function SidebarLink({
   icon,
   label,
   active,
+  categoryClass,
 }: {
   href: string;
   icon: IconName;
   label: string;
   active?: boolean;
+  categoryClass?: string;
 }) {
   return (
-    <Link href={href} className={`${NAV_ITEM} ${active ? NAV_ACTIVE : NAV_INACTIVE}`}>
+    <Link href={href} className={`relative ${NAV_ITEM} ${active ? NAV_ACTIVE : NAV_INACTIVE}`}>
+      {active && (
+        <span className="absolute -left-2 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-blue-500 dark:bg-blue-400" />
+      )}
       <span className="flex items-center gap-3">
         <span className="flex w-5 items-center justify-center">
-          <Icon name={icon} size={18} />
+          <Icon
+            name={icon}
+            size={18}
+            weight={active ? "filled" : "outline"}
+            className={!active ? categoryClass : undefined}
+          />
         </span>
         {label}
       </span>

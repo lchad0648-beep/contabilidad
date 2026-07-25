@@ -130,3 +130,18 @@ body {
     opacity: 1;
   }
 }
+
+@keyframes sparkle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
+}
+.animate-sparkle-pulse {
+  animation: sparkle-pulse 2.4s ease-in-out infinite;
+}

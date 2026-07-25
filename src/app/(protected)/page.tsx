@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getEstadosFinancieros } from "@/lib/estados-financieros";
 import FinancialStatementCard from "@/components/FinancialStatementCard";
 import Icon, { type IconName } from "@/components/Icon";
+import { categoryTextClass, categoryBgClass } from "@/lib/modules";
 
 export default async function ResumenPage() {
   const user = await getCurrentUser();
@@ -57,7 +58,11 @@ export default async function ResumenPage() {
             className="glass-card flex items-center justify-between rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
-              <Icon name={mod.icon as IconName} size={20} />
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${categoryBgClass(mod.category)}`}
+              >
+                <Icon name={mod.icon as IconName} size={20} className={categoryTextClass(mod.category)} />
+              </div>
               <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{mod.label}</span>
             </div>
             <span className="rounded-full bg-black/5 px-2.5 py-1 text-sm font-semibold text-gray-700 dark:bg-white/10 dark:text-slate-200">

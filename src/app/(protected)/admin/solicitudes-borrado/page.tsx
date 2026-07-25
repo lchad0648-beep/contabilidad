@@ -11,6 +11,12 @@ const ESTADO_COLOR: Record<string, string> = {
   Rechazada: "bg-red-100 text-red-800",
 };
 
+const ESTADO_ICON: Record<string, IconName> = {
+  Pendiente: "clock",
+  Aprobada: "check-circle",
+  Rechazada: "x-circle",
+};
+
 export default async function SolicitudesBorradoPage() {
   const me = await getCurrentUser();
   if (!me || me.role !== "admin") redirect("/");
@@ -28,6 +34,7 @@ export default async function SolicitudesBorradoPage() {
 
       {solicitudes.length === 0 ? (
         <div className="glass-card rounded-2xl border-dashed p-10 text-center text-sm text-gray-500 dark:text-slate-400">
+          <Icon name="trash" size={40} className="mx-auto mb-3 block opacity-25" />
           No hay solicitudes de borrado todavía.
         </div>
       ) : (
@@ -71,7 +78,10 @@ export default async function SolicitudesBorradoPage() {
                     <td className="px-4 py-2 text-gray-600 dark:text-slate-300">{s.solicitado_por_username}</td>
                     <td className="px-4 py-2 text-gray-500 dark:text-slate-400">{s.motivo ?? "—"}</td>
                     <td className="px-4 py-2">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTADO_COLOR[s.estado]}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTADO_COLOR[s.estado]}`}
+                      >
+                        <Icon name={ESTADO_ICON[s.estado]} size={12} weight="filled" />
                         {s.estado}
                       </span>
                     </td>

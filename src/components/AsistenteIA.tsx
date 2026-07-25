@@ -245,7 +245,12 @@ export default function AsistenteIA() {
         title="Asistente IA"
         className="glass-button-accent fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition hover:scale-110 active:scale-95"
       >
-        <Icon name={open ? "x" : "sparkle"} size={26} />
+        <Icon
+          name={open ? "x" : "sparkle"}
+          size={26}
+          weight={open ? "outline" : "filled"}
+          className={open ? undefined : "animate-sparkle-pulse"}
+        />
       </button>
 
       {open && (
@@ -283,7 +288,12 @@ export default function AsistenteIA() {
                   <div className="mt-1.5 max-w-[85%] rounded-xl border border-black/10 bg-amber-500/10 p-3 text-xs dark:border-white/10 dark:bg-amber-400/10">
                     <p className="mb-2 flex items-start gap-1.5 whitespace-pre-wrap text-gray-700 dark:text-slate-200">
                       {esPeligrosa(m.accion.tipo) && (
-                        <Icon name="alert-triangle" size={14} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <Icon
+                          name="alert-triangle"
+                          size={14}
+                          weight="filled"
+                          className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        />
                       )}
                       <span>{describirAccion(m.accion)}</span>
                     </p>
@@ -311,7 +321,7 @@ export default function AsistenteIA() {
 
                     {m.accion.estado === "confirmada" && (
                       <p className="flex items-start gap-1.5 text-emerald-600 dark:text-emerald-400">
-                        <Icon name="check-circle" size={14} className="mt-0.5 shrink-0" />
+                        <Icon name="check-circle" size={14} weight="filled" className="mt-0.5 shrink-0" />
                         <span>
                           {m.accion.resultado}
                           {m.accion.url && (
@@ -328,14 +338,14 @@ export default function AsistenteIA() {
 
                     {m.accion.estado === "rechazada" && (
                       <p className="flex items-start gap-1.5 text-gray-500 dark:text-slate-400">
-                        <Icon name="x-circle" size={14} className="mt-0.5 shrink-0" />
+                        <Icon name="x-circle" size={14} weight="filled" className="mt-0.5 shrink-0" />
                         <span>{m.accion.resultado}</span>
                       </p>
                     )}
 
                     {m.accion.estado === "error" && (
                       <p className="flex items-start gap-1.5 text-red-600 dark:text-red-400">
-                        <Icon name="alert-triangle" size={14} className="mt-0.5 shrink-0" />
+                        <Icon name="alert-triangle" size={14} weight="filled" className="mt-0.5 shrink-0" />
                         <span>{m.accion.resultado}</span>
                       </p>
                     )}

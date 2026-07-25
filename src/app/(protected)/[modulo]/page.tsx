@@ -48,6 +48,7 @@ export default async function ModuleListPage({
 
       {records.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-black/10 bg-black/[0.02] p-10 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-400">
+          <Icon name={mod.icon as IconName} size={40} className="mx-auto mb-3 block opacity-25" />
           Aún no hay registros en {mod.label}.
         </div>
       ) : (
