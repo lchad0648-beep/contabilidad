@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { getEmpleoActivoDeUsuario } from "@/lib/empresa-empleados";
 import Sidebar from "@/components/Sidebar";
 import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -14,10 +15,12 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   if (user.status !== "approved") redirect("/login?pending=1");
   if (user.role === "cliente") redirect("/portal");
 
+  const empleo = await getEmpleoActivoDeUsuario(user.id);
+
   return (
     <div className="flex h-screen w-full bg-[var(--background)]">
       <div className="glass-sidebar">
-        <Sidebar isAdmin={user.role === "admin"} />
+        <Sidebar isAdmin={user.role === "admin"} tieneEmpleo={!!empleo} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="glass-header sticky top-0 z-20 flex items-center justify-between px-6 py-3">

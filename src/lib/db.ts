@@ -44,8 +44,9 @@ function toPgQuery(sql: string): string {
     .replace(/\?/g, () => `$${++i}`);
 }
 
-// Todas las tablas usan "id" como PK autogenerada, excepto "sessions" (usa "token").
-const TABLES_WITHOUT_ID = /^\s*insert\s+into\s+sessions\b/i;
+// Todas las tablas usan "id" como PK autogenerada, excepto: "sessions" y
+// "empresa_sessions" (usan "token"), y "empresa_acciones" (usa "empresa_id").
+const TABLES_WITHOUT_ID = /^\s*insert\s+into\s+(sessions|empresa_sessions|empresa_acciones)\b/i;
 
 function needsReturningId(sql: string): boolean {
   return /^\s*insert\s+into/i.test(sql) && !/returning/i.test(sql) && !TABLES_WITHOUT_ID.test(sql);

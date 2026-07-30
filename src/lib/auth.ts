@@ -13,6 +13,7 @@ export interface SessionUser {
   role: "admin" | "profesional" | "cliente";
   status: "pending" | "approved" | "rejected";
   cliente_id: number | null;
+  saldo: number;
 }
 
 export function hashPassword(password: string): string {
@@ -42,7 +43,7 @@ export async function getUserByToken(token: string): Promise<SessionUser | null>
   const db = getDb();
   const row = (await db
     .prepare(
-      `SELECT u.id, u.username, u.role, u.status, u.cliente_id
+      `SELECT u.id, u.username, u.role, u.status, u.cliente_id, u.saldo
        FROM sessions s
        JOIN users u ON u.id = s.user_id
        WHERE s.token = ? AND s.expires_at > now()`

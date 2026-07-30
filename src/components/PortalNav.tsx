@@ -8,6 +8,8 @@ const ITEMS = [
   { href: "/portal/recibos", label: "Mis facturas" },
   { href: "/portal/pagos", label: "Mis pagos" },
   { href: "/portal/prestamos", label: "Préstamos" },
+  { href: "/portal/trabajo", label: "Trabajo" },
+  { href: "/portal/bolsa", label: "Bolsa" },
   { href: "/portal/tickets", label: "Soporte" },
 ];
 

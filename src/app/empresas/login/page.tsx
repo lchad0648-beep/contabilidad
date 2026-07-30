@@ -1,17 +1,14 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import AuthBackground from "@/components/AuthBackground";
 import ThemeToggle from "@/components/ThemeToggle";
 
-function LoginForm() {
+export default function LoginEmpresaPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const pending = params.get("pending") === "1";
-
-  const [username, setUsername] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,17 +18,17 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/empresas/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ usuario, password }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Error al iniciar sesión.");
         return;
       }
-      router.push("/");
+      router.push("/empresa");
       router.refresh();
     } finally {
       setLoading(false);
@@ -46,14 +43,9 @@ function LoginForm() {
       </div>
 
       <div className="glass-card w-full max-w-sm animate-fade-in-up rounded-3xl p-8">
-        <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-slate-100">Iniciar sesión</h1>
-        <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">Sistema de contabilidad</p>
+        <h1 className="mb-1 text-xl font-semibold text-gray-900 dark:text-slate-100">Iniciar sesión (empresa)</h1>
+        <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">Panel de gestión empresarial</p>
 
-        {pending && (
-          <div className="mb-4 rounded-xl bg-yellow-500/10 px-3 py-2 text-sm text-yellow-800 dark:text-yellow-300">
-            Tu cuenta aún no ha sido aprobada por un administrador.
-          </div>
-        )}
         {error && (
           <div className="mb-4 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
             {error}
@@ -62,20 +54,16 @@ function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
-              Usuario
-            </label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">Usuario</label>
             <input
               className="w-full rounded-xl border border-black/10 bg-white/60 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">
-              Contraseña
-            </label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">Contraseña</label>
             <input
               type="password"
               className="w-full rounded-xl border border-black/10 bg-white/60 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
@@ -94,26 +82,12 @@ function LoginForm() {
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-500 dark:text-slate-400">
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            Regístrate
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-xs text-gray-400 dark:text-slate-500">
-          ¿Eres una empresa?{" "}
-          <Link href="/empresas/registro" className="underline">
-            Regístrala aquí
+          ¿No tienes empresa registrada?{" "}
+          <Link href="/empresas/registro" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            Regístrala
           </Link>
         </p>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   );
 }

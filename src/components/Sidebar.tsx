@@ -12,7 +12,7 @@ const NAV_ACTIVE =
 const NAV_INACTIVE =
   "text-slate-600 hover:bg-black/5 hover:translate-x-0.5 dark:text-slate-300 dark:hover:bg-white/5";
 
-export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
+export default function Sidebar({ isAdmin, tieneEmpleo }: { isAdmin: boolean; tieneEmpleo: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -47,6 +47,18 @@ export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
         label="Préstamos"
         active={pathname?.startsWith("/prestamos")}
       />
+      <SidebarLink
+        href="/trabajo"
+        icon={tieneEmpleo ? "lock-open" : "lock"}
+        label="Trabajo"
+        active={pathname === "/trabajo"}
+      />
+      <SidebarLink
+        href="/bolsa"
+        icon="graph-up"
+        label="Bolsa"
+        active={pathname?.startsWith("/bolsa")}
+      />
 
       {isAdmin && (
         <>
@@ -61,6 +73,18 @@ export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
             icon="trash"
             label="Solicitudes de borrado"
             active={pathname === "/admin/solicitudes-borrado"}
+          />
+          <SidebarLink
+            href="/admin/bolsa-solicitudes"
+            icon="lock"
+            label="Solicitudes de bolsa"
+            active={pathname?.startsWith("/admin/bolsa-solicitudes")}
+          />
+          <SidebarLink
+            href="/admin/empresas"
+            icon="money-bag"
+            label="Empresas"
+            active={pathname === "/admin/empresas"}
           />
         </>
       )}
