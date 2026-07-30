@@ -156,6 +156,48 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ---------- Bolsa (disponible para cualquier usuario, cliente o staff) ----------
+    if (tipo === "comprar_acciones" || tipo === "vender_acciones") {
+      const empresaNombre = texto(p.empresa, 100);
+      const cantidad = numeroPositivo(p.cantidad);
+      if (!empresaNombre || !cantidad) {
+        return NextResponse.json(
+          { error: "Falta el nombre de la empresa o la cantidad de acciones." },
+          { status: 400 }
+        );
+      }
+      const { buscarEmpresaEnBolsaPorNombre, comprarAcciones, venderAcciones } = await import("@/lib/bolsa");
+      const candidatos = await buscarEmpresaEnBolsaPorNombre(empresaNombre);
+      if (candidatos.length === 0) {
+        return NextResponse.json(
+          { error: `No encontré ninguna empresa en bolsa llamada "${empresaNombre}".` },
+          { status: 400 }
+        );
+      }
+      if (candidatos.length > 1) {
+        return NextResponse.json(
+          {
+            error: `Hay varias empresas en bolsa que coinciden (${candidatos
+              .map((c) => c.nombre)
+              .join(", ")}); sé más específico.`,
+          },
+          { status: 400 }
+        );
+      }
+      const empresa = candidatos[0];
+      const cantidadEntera = Math.floor(cantidad);
+      const result =
+        tipo === "comprar_acciones"
+          ? await comprarAcciones(empresa.id, user.id, cantidadEntera)
+          : await venderAcciones(empresa.id, user.id, cantidadEntera);
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+      return NextResponse.json({
+        ok: true,
+        mensaje: `Listo, ${tipo === "comprar_acciones" ? "compré" : "vendí"} ${cantidadEntera} acciones de ${empresa.nombre}.`,
+        url: `/bolsa/${empresa.id}`,
+      });
+    }
+
     // A partir de aquí, todo es exclusivo de staff (admin/profesional).
     if (user.role === "cliente") {
       return NextResponse.json({ error: "No autorizado." }, { status: 403 });

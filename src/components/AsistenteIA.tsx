@@ -19,7 +19,17 @@ type AccionTipo =
   | "reasignar_prestamo"
   | "marcar_cuota_pagada"
   | "aprobar_usuario"
-  | "rechazar_usuario";
+  | "rechazar_usuario"
+  | "comprar_acciones"
+  | "vender_acciones"
+  | "pagar_salario"
+  | "contratar_empleado"
+  | "despedir_empleado"
+  | "actualizar_salario"
+  | "enviar_mensaje_empleado_empresa"
+  | "crear_material"
+  | "solicitar_bolsa"
+  | "lanzar_bolsa";
 type AccionEstado = "pendiente" | "ejecutando" | "confirmada" | "rechazada" | "error";
 
 interface Accion {
@@ -74,7 +84,13 @@ function refTicket(p: Record<string, unknown>): string {
   return p.ticket_id != null ? `#${p.ticket_id}` : String(p.cliente ?? p.asunto ?? "?");
 }
 
-const ACCIONES_PELIGROSAS = new Set(["crud_eliminar", "rechazar_prestamo", "rechazar_usuario"]);
+const ACCIONES_PELIGROSAS = new Set([
+  "crud_eliminar",
+  "rechazar_prestamo",
+  "rechazar_usuario",
+  "despedir_empleado",
+  "vender_acciones",
+]);
 
 function esPeligrosa(tipo: string): boolean {
   return ACCIONES_PELIGROSAS.has(tipo);
@@ -113,12 +129,38 @@ function describirAccion(accion: Accion): string {
       return `Aprobar al usuario de staff: ${p.username}`;
     case "rechazar_usuario":
       return `Rechazar (irreversible) al usuario de staff: ${p.username}`;
+    case "comprar_acciones":
+      return `Comprar ${p.cantidad} acciones de "${p.empresa}".`;
+    case "vender_acciones":
+      return `Vender ${p.cantidad} acciones de "${p.empresa}".`;
+    case "pagar_salario":
+      return `Pagar el salario a ${p.empleado}.`;
+    case "contratar_empleado":
+      return `Contratar a ${p.usuario} con salario ${p.salario}.`;
+    case "despedir_empleado":
+      return `Despedir a ${p.empleado}.`;
+    case "actualizar_salario":
+      return `Cambiar el salario de ${p.empleado} a ${p.salario}.`;
+    case "enviar_mensaje_empleado_empresa":
+      return `Enviar a ${p.empleado} el mensaje:\n"${p.mensaje}"`;
+    case "crear_material":
+      return `Añadir a Logística: ${p.nombre} (cantidad ${p.cantidad}).`;
+    case "solicitar_bolsa":
+      return `Abrir un ticket para solicitar la salida a bolsa:\n"${p.mensaje}"`;
+    case "lanzar_bolsa":
+      return `Lanzar la salida a bolsa con ${p.pct_salida}% de las acciones.`;
     default:
       return "Realizar una acción en la app.";
   }
 }
 
-export default function AsistenteIA() {
+export default function AsistenteIA({
+  chatUrl = "/api/asistente",
+  ejecutarUrl = "/api/asistente/ejecutar",
+}: {
+  chatUrl?: string;
+  ejecutarUrl?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [text, setText] = useState("");
@@ -144,7 +186,7 @@ export default function AsistenteIA() {
     const timeoutId = setTimeout(() => controller.abort(), 60_000);
 
     try {
-      const res = await fetch("/api/asistente", {
+      const res = await fetch(chatUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mensajes: historial, pagina: pathname }),
@@ -221,7 +263,7 @@ export default function AsistenteIA() {
     if (!accion) return;
     actualizarAccion(index, { estado: "ejecutando" });
     try {
-      const res = await fetch("/api/asistente/ejecutar", {
+      const res = await fetch(ejecutarUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tipo: accion.tipo, payload: accion.payload }),

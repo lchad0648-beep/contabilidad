@@ -492,6 +492,19 @@ export async function listTransaccionesUsuario(
   }[];
 }
 
+/** Para que el asistente IA resuelva un nombre de empresa que le dio el usuario a un id real que cotiza en bolsa. */
+export async function buscarEmpresaEnBolsaPorNombre(nombre: string): Promise<{ id: number; nombre: string }[]> {
+  const db = getDb();
+  return (await db
+    .prepare(
+      `SELECT e.id, e.nombre FROM empresas e
+       JOIN empresa_acciones a ON a.empresa_id = e.id
+       WHERE e.nombre ILIKE ?
+       ORDER BY e.nombre LIMIT 10`
+    )
+    .all(`%${nombre}%`)) as { id: number; nombre: string }[];
+}
+
 export interface EmpresaAdminRow {
   id: number;
   nombre: string;

@@ -67,12 +67,18 @@ function describirCamposModulo(mod: ModuleConfig): string {
   return `  * ${mod.slug} — ${campos.join("; ")}`;
 }
 
+const ACCIONES_BOLSA = [
+  '- comprar_acciones: {"empresa": string (nombre de la empresa), "cantidad": number} — compra acciones de una empresa que cotiza en bolsa, al precio actual de mercado.',
+  '- vender_acciones: {"empresa": string, "cantidad": number} — vende acciones que el usuario ya tiene de una empresa.',
+].join("\n");
+
 function accionesDisponibles(role: string): string {
   if (role === "cliente") {
     return [
       "Tipos de acción disponibles para este usuario (cliente):",
       '- crear_ticket: {"asunto": string, "mensaje": string} — abre un ticket de soporte para este cliente.',
       '- solicitar_prestamo: {"monto": number, "motivo": string} — crea una solicitud de préstamo para este cliente.',
+      ACCIONES_BOLSA,
     ].join("\n");
   }
 
@@ -100,6 +106,8 @@ function accionesDisponibles(role: string): string {
     '- rechazar_prestamo: {"cliente": string | "prestamo_id": number}',
     '- reasignar_prestamo: {"cliente": string | "prestamo_id": number, "staff_username": string}',
     '- marcar_cuota_pagada: {"cliente": string | "prestamo_id": number, "numero_cuota": number} — marca como pagada una cuota específica de un préstamo.',
+    "",
+    ACCIONES_BOLSA,
     "",
     'Si al confirmar una acción el sistema responde que hay varias coincidencias (ids listados) o que no encontró nada, pregunta al usuario para desambiguar en vez de adivinar un id.',
   ];
@@ -253,6 +261,35 @@ async function buildSystemPrompt(user: SessionUser, pagina: string | undefined):
       "No inventes ningún dato de la cuenta que no esté en la lista de arriba; si te preguntan algo que no tienes (ej. facturas más antiguas que las listadas), indica en qué sección de la app puede consultarlo."
     );
   }
+
+  const { listEmpresasEnBolsa, listTenenciasUsuario } = await import("@/lib/bolsa");
+  const [empresasBolsa, tenencias] = await Promise.all([
+    listEmpresasEnBolsa(),
+    listTenenciasUsuario(user.id),
+  ]);
+
+  partes.push(
+    [
+      "Estado real del mercado de Bolsa de la app (empresas que ya salieron a bolsa), en este momento — úsalo tal cual, no inventes otras empresas ni precios:",
+      empresasBolsa.length > 0
+        ? empresasBolsa
+            .map((e) => {
+              const variacion =
+                e.precio_apertura_dia > 0
+                  ? (((e.precio_actual - e.precio_apertura_dia) / e.precio_apertura_dia) * 100).toFixed(2)
+                  : "0.00";
+              return `- ${e.empresa_nombre}: precio actual ${e.precio_actual.toFixed(2)}, variación 24h ${variacion}%, acciones disponibles ${e.acciones_disponibles}/${e.acciones_mercado_totales}`;
+            })
+            .join("\n")
+        : "Todavía no hay ninguna empresa cotizando en bolsa.",
+      tenencias.length > 0
+        ? `Acciones que este usuario ya tiene: ${tenencias
+            .map((t) => `${t.cantidad} de ${t.empresa_nombre}`)
+            .join(", ")}.`
+        : "Este usuario no tiene acciones compradas todavía.",
+      "Puedes comentar tendencias (variación reciente, volatilidad, cuántas acciones quedan disponibles) para orientar al usuario sobre qué empresa le puede interesar comprar o vender, y ejecutar la compra/venta con la acción correspondiente si el usuario confirma cantidad y empresa. Deja claro, si preguntan por consejos de inversión, que esto es un mercado simulado dentro de la app y que no eres un asesor financiero certificado ni garantizas ganancias.",
+    ].join("\n")
+  );
 
   return partes.filter(Boolean).join("\n\n");
 }

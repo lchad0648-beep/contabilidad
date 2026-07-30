@@ -5,6 +5,7 @@ import { getBolsaEstado, type BolsaEstado } from "@/lib/bolsa";
 import EmpresaSidebar, { type BolsaTabEstado } from "@/components/EmpresaSidebar";
 import EmpresaLogoutButton from "@/components/EmpresaLogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
+import AsistenteIA from "@/components/AsistenteIA";
 import Icon from "@/components/Icon";
 
 function mapBolsaTabEstado(estado: BolsaEstado): BolsaTabEstado {
@@ -42,6 +43,7 @@ export default async function EmpresaLayout({ children }: { children: React.Reac
         </header>
         <main className="flex-1 overflow-y-auto p-6 animate-fade-in-up">{children}</main>
       </div>
+      <AsistenteIA chatUrl="/api/asistente-empresa" ejecutarUrl="/api/asistente-empresa/ejecutar" />
     </div>
   );
 }
