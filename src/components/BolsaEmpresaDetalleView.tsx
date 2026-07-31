@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getAccionesEmpresa, getHistorialPrecio, getTenencia, listTransaccionesUsuario } from "@/lib/bolsa";
 import { getEmpresa } from "@/lib/empresas";
-import PriceChart from "./PriceChart";
+import CandleChart from "./CandleChart";
 import BolsaTradeForm from "./BolsaTradeForm";
 import Icon from "./Icon";
 
@@ -50,7 +50,7 @@ export default async function BolsaEmpresaDetalleView({ empresaId }: { empresaId
           </div>
 
           <div className="glass-card mb-6 rounded-2xl p-5">
-            <PriceChart data={puntos} gradientId={`bolsa-${empresaId}`} />
+            <CandleChart data={puntos} />
           </div>
 
           <div className="glass-card overflow-hidden rounded-2xl">
